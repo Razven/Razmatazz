@@ -80,6 +80,11 @@
     [self.view addSubview:self.statusLabel];
     [self.view addSubview:self.songListLabel];
     [self.view addSubview:self.songListTableView];
+    
+    //TODO: set the right bar button item as the 'people' icon and when the user presses it, push clientsconnectedviewcontroller and display
+    // the clients which are currently conencted.
+    
+//    self.navigationController.navigationItem setRightBarButtonItem:
 }
 
 - (void) viewWillDisappear:(BOOL)animated {

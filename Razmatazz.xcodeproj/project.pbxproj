@@ -45,6 +45,7 @@
 		38D74CCA17CC566A00F3EFD5 /* JoinPartyViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 38D74CC917CC566A00F3EFD5 /* JoinPartyViewController.m */; };
 		38D74CCC17CC57CC00F3EFD5 /* Songs in Resources */ = {isa = PBXBuildFile; fileRef = 38D74CCB17CC57CC00F3EFD5 /* Songs */; };
 		38D74CCF17CC695000F3EFD5 /* MediaPlayer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 38D74CCD17CC694B00F3EFD5 /* MediaPlayer.framework */; };
+		38D74CD217CC6CC500F3EFD5 /* ClientsConnectedViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 38D74CD117CC6CC400F3EFD5 /* ClientsConnectedViewController.m */; };
 		38F493EE17CC3B35005659B3 /* HomeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 38F493ED17CC3B35005659B3 /* HomeViewController.m */; };
 		38F493F217CC44EA005659B3 /* StyleFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = 38F493F117CC44EA005659B3 /* StyleFactory.m */; };
 /* End PBXBuildFile section */
@@ -117,6 +118,8 @@
 		38D74CC917CC566A00F3EFD5 /* JoinPartyViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JoinPartyViewController.m; sourceTree = "<group>"; };
 		38D74CCB17CC57CC00F3EFD5 /* Songs */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Songs; sourceTree = "<group>"; };
 		38D74CCD17CC694B00F3EFD5 /* MediaPlayer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaPlayer.framework; path = System/Library/Frameworks/MediaPlayer.framework; sourceTree = SDKROOT; };
+		38D74CD017CC6CC400F3EFD5 /* ClientsConnectedViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ClientsConnectedViewController.h; sourceTree = "<group>"; };
+		38D74CD117CC6CC400F3EFD5 /* ClientsConnectedViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ClientsConnectedViewController.m; sourceTree = "<group>"; };
 		38F493EC17CC3B35005659B3 /* HomeViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HomeViewController.h; sourceTree = "<group>"; };
 		38F493ED17CC3B35005659B3 /* HomeViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HomeViewController.m; sourceTree = "<group>"; };
 		38F493F017CC44EA005659B3 /* StyleFactory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleFactory.h; sourceTree = "<group>"; };
@@ -317,6 +320,8 @@
 				38D74CC617CC53FE00F3EFD5 /* HostPartyViewController.m */,
 				38D74CC817CC566A00F3EFD5 /* JoinPartyViewController.h */,
 				38D74CC917CC566A00F3EFD5 /* JoinPartyViewController.m */,
+				38D74CD017CC6CC400F3EFD5 /* ClientsConnectedViewController.h */,
+				38D74CD117CC6CC400F3EFD5 /* ClientsConnectedViewController.m */,
 			);
 			name = "View controllers";
 			sourceTree = "<group>";
@@ -425,6 +430,7 @@
 				38D74CBD17CC529C00F3EFD5 /* DispatchQueueLogFormatter.m in Sources */,
 				38D74CC717CC53FE00F3EFD5 /* HostPartyViewController.m in Sources */,
 				38D74CCA17CC566A00F3EFD5 /* JoinPartyViewController.m in Sources */,
+				38D74CD217CC6CC500F3EFD5 /* ClientsConnectedViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
