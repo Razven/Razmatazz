@@ -83,11 +83,18 @@
 #pragma mark - UIButton delegate
 
 - (void) hostPartyButtonPressed {
-    NSLog(@"Hosting party!");
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Name your party" message:@"Choose a name for your party" delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
+    [alertView setAlertViewStyle:UIAlertViewStylePlainTextInput];
 }
 
 - (void) joinPartyButtonPressed {
     NSLog(@"Joining party!");
+}
+
+#pragma mark - UIAlertView delegate 
+
+- (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
+    NSLog(@"Party name: %@", [[alertView textFieldAtIndex:0] text]);
 }
 
 @end
