@@ -9,6 +9,7 @@
 #import "HostPartyViewController.h"
 #import "AppDelegate.h"
 #import <MediaPlayer/MediaPlayer.h>
+#import "ClientsConnectedViewController.h"
 
 @interface HostPartyViewController ()
 
@@ -81,10 +82,9 @@
     [self.view addSubview:self.songListLabel];
     [self.view addSubview:self.songListTableView];
     
-    //TODO: set the right bar button item as the 'people' icon and when the user presses it, push clientsconnectedviewcontroller and display
-    // the clients which are currently conencted.
-    
-//    self.navigationController.navigationItem setRightBarButtonItem:
+    UIImage *groupIcon = [UIImage imageNamed:@"group.png"];
+    UIBarButtonItem *viewClientsConnected = [[UIBarButtonItem alloc] initWithImage:groupIcon style:UIBarButtonItemStyleBordered target:self action:@selector(openClientsConnectedView)];
+    [self.navigationItem setRightBarButtonItem:viewClientsConnected];
 }
 
 - (void) viewWillDisappear:(BOOL)animated {
@@ -137,6 +137,13 @@
     [cell.textLabel setText:songTitle];
     
     return cell;
+}
+
+#pragma mark - BarButtonItem selectors
+
+- (void) openClientsConnectedView {
+    ClientsConnectedViewController *ccvc = [[ClientsConnectedViewController alloc] init];
+    [self.navigationController pushViewController:ccvc animated:YES];
 }
 
 @end

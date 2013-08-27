@@ -14,6 +14,7 @@
 
 @property (nonatomic, strong) HTTPServer *httpServer;
 @property (nonatomic, assign) BOOL serverStarted;
+@property (nonatomic, strong) UINavigationController *navController;
 
 @end
 
@@ -36,9 +37,9 @@
     self.serverStarted = NO;
 
     HomeViewController *hvc = [[HomeViewController alloc] init];
-    UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:hvc];
+    self.navController = [[UINavigationController alloc] initWithRootViewController:hvc];
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-    self.window.rootViewController = navController;
+    self.window.rootViewController = self.navController;
     [self.window makeKeyAndVisible];
     return YES;
 }
@@ -157,6 +158,12 @@
     }    
     
     return _persistentStoreCoordinator;
+}
+
+#pragma mark - UINavigationController selectors
+
+- (void) pushViewController:(UIViewController*)viewController animated:(BOOL)animated{
+    [self.navController pushViewController:viewController animated:animated];
 }
 
 #pragma mark - Application's Documents directory

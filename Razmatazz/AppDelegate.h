@@ -19,6 +19,8 @@
 - (void)saveContext;
 - (NSURL *)applicationDocumentsDirectory;
 
+- (void) pushViewController:(UIViewController*)viewController animated:(BOOL)animated;
+
 - (NSError*)startServer;
 - (void)stopServer;
 

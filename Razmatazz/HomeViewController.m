@@ -8,6 +8,7 @@
 
 #import "HomeViewController.h"
 #import <QuartzCore/QuartzCore.h>
+#import "AppDelegate.h"
 #import "StyleFactory.h"
 #import "HostPartyViewController.h"
 
@@ -89,7 +90,7 @@
 #pragma mark - UIButton delegate
 
 - (void) hostPartyButtonPressed {
-    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Name your party" message:@"Choose a name for your party" delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Name your party" message:@"Choose a name for your party" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"OK", nil];
     [alertView setAlertViewStyle:UIAlertViewStylePlainTextInput];
     [alertView show];
 }
@@ -99,6 +100,12 @@
 }
 
 #pragma mark - UIAlertView delegate
+
+- (BOOL)alertViewShouldEnableFirstOtherButton:(UIAlertView *)alertView {
+    // don't allow a chatroom with no name
+    // this makes the back button of the clients view to not show up when pushed from here
+    return [[[alertView textFieldAtIndex:0] text] length] > 0;
+}
 
 - (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
     HostPartyViewController *hpvc = [[HostPartyViewController alloc] initWithPartyName:[[alertView textFieldAtIndex:0] text]];
