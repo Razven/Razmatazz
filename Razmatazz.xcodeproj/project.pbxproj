@@ -41,6 +41,9 @@
 		38D74CBD17CC529C00F3EFD5 /* DispatchQueueLogFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 38D74CBB17CC529C00F3EFD5 /* DispatchQueueLogFormatter.m */; };
 		38D74CC017CC52FD00F3EFD5 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 38D74CBE17CC52F600F3EFD5 /* CFNetwork.framework */; };
 		38D74CC317CC533200F3EFD5 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 38D74CC117CC532C00F3EFD5 /* Security.framework */; };
+		38D74CC717CC53FE00F3EFD5 /* HostPartyViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 38D74CC617CC53FE00F3EFD5 /* HostPartyViewController.m */; };
+		38D74CCA17CC566A00F3EFD5 /* JoinPartyViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 38D74CC917CC566A00F3EFD5 /* JoinPartyViewController.m */; };
+		38D74CCC17CC57CC00F3EFD5 /* Songs in Resources */ = {isa = PBXBuildFile; fileRef = 38D74CCB17CC57CC00F3EFD5 /* Songs */; };
 		38F493EE17CC3B35005659B3 /* HomeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 38F493ED17CC3B35005659B3 /* HomeViewController.m */; };
 		38F493F217CC44EA005659B3 /* StyleFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = 38F493F117CC44EA005659B3 /* StyleFactory.m */; };
 /* End PBXBuildFile section */
@@ -107,6 +110,11 @@
 		38D74CBB17CC529C00F3EFD5 /* DispatchQueueLogFormatter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DispatchQueueLogFormatter.m; sourceTree = "<group>"; };
 		38D74CBE17CC52F600F3EFD5 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
 		38D74CC117CC532C00F3EFD5 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		38D74CC517CC53FE00F3EFD5 /* HostPartyViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HostPartyViewController.h; sourceTree = "<group>"; };
+		38D74CC617CC53FE00F3EFD5 /* HostPartyViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HostPartyViewController.m; sourceTree = "<group>"; };
+		38D74CC817CC566A00F3EFD5 /* JoinPartyViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JoinPartyViewController.h; sourceTree = "<group>"; };
+		38D74CC917CC566A00F3EFD5 /* JoinPartyViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JoinPartyViewController.m; sourceTree = "<group>"; };
+		38D74CCB17CC57CC00F3EFD5 /* Songs */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Songs; sourceTree = "<group>"; };
 		38F493EC17CC3B35005659B3 /* HomeViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HomeViewController.h; sourceTree = "<group>"; };
 		38F493ED17CC3B35005659B3 /* HomeViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HomeViewController.m; sourceTree = "<group>"; };
 		38F493F017CC44EA005659B3 /* StyleFactory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleFactory.h; sourceTree = "<group>"; };
@@ -133,6 +141,7 @@
 		380156C217CBD9BA006E3C84 /* Third party */ = {
 			isa = PBXGroup;
 			children = (
+				38D74CC417CC538500F3EFD5 /* Cocoa HTTP Server */,
 			);
 			name = "Third party";
 			sourceTree = "<group>";
@@ -170,9 +179,6 @@
 		38C22EA717CBD59900014D39 /* Razmatazz */ = {
 			isa = PBXGroup;
 			children = (
-				38D74CA717CC527B00F3EFD5 /* Logging */,
-				38D74C7817CC4CC500F3EFD5 /* HTTP */,
-				38D74C7717CC4CB900F3EFD5 /* TCP */,
 				38F493EF17CC44D4005659B3 /* Helper classes */,
 				38F493EB17CC3B17005659B3 /* View controllers */,
 				38C22EB017CBD59900014D39 /* AppDelegate.h */,
@@ -187,6 +193,7 @@
 		38C22EA817CBD59900014D39 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				38D74CCB17CC57CC00F3EFD5 /* Songs */,
 				38C22EA917CBD59900014D39 /* Razmatazz-Info.plist */,
 				38C22EAA17CBD59900014D39 /* InfoPlist.strings */,
 				38C22EAD17CBD59900014D39 /* main.m */,
@@ -287,11 +294,25 @@
 			name = Extensions;
 			sourceTree = "<group>";
 		};
+		38D74CC417CC538500F3EFD5 /* Cocoa HTTP Server */ = {
+			isa = PBXGroup;
+			children = (
+				38D74CA717CC527B00F3EFD5 /* Logging */,
+				38D74C7817CC4CC500F3EFD5 /* HTTP */,
+				38D74C7717CC4CB900F3EFD5 /* TCP */,
+			);
+			name = "Cocoa HTTP Server";
+			sourceTree = "<group>";
+		};
 		38F493EB17CC3B17005659B3 /* View controllers */ = {
 			isa = PBXGroup;
 			children = (
 				38F493EC17CC3B35005659B3 /* HomeViewController.h */,
 				38F493ED17CC3B35005659B3 /* HomeViewController.m */,
+				38D74CC517CC53FE00F3EFD5 /* HostPartyViewController.h */,
+				38D74CC617CC53FE00F3EFD5 /* HostPartyViewController.m */,
+				38D74CC817CC566A00F3EFD5 /* JoinPartyViewController.h */,
+				38D74CC917CC566A00F3EFD5 /* JoinPartyViewController.m */,
 			);
 			name = "View controllers";
 			sourceTree = "<group>";
@@ -361,6 +382,7 @@
 				38C22EB417CBD59900014D39 /* Default.png in Resources */,
 				38C22EB617CBD59900014D39 /* Default@2x.png in Resources */,
 				38C22EB817CBD59900014D39 /* Default-568h@2x.png in Resources */,
+				38D74CCC17CC57CC00F3EFD5 /* Songs in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -397,6 +419,8 @@
 				38D74CB617CC528B00F3EFD5 /* DDTTYLogger.m in Sources */,
 				38D74CBC17CC529C00F3EFD5 /* ContextFilterLogFormatter.m in Sources */,
 				38D74CBD17CC529C00F3EFD5 /* DispatchQueueLogFormatter.m in Sources */,
+				38D74CC717CC53FE00F3EFD5 /* HostPartyViewController.m in Sources */,
+				38D74CCA17CC566A00F3EFD5 /* JoinPartyViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

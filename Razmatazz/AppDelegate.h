@@ -19,4 +19,7 @@
 - (void)saveContext;
 - (NSURL *)applicationDocumentsDirectory;
 
+- (NSError*)startServer;
+- (void)stopServer;
+
 @end

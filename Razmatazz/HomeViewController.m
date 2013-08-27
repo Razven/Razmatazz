@@ -9,6 +9,7 @@
 #import "HomeViewController.h"
 #import <QuartzCore/QuartzCore.h>
 #import "StyleFactory.h"
+#import "HostPartyViewController.h"
 
 @interface HomeViewController ()
 
@@ -74,6 +75,11 @@
     [self.view addSubview:self.hostPartyButton];
 }
 
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    [self.navigationItem setTitle:@"Home"];
+}
+
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
@@ -85,16 +91,18 @@
 - (void) hostPartyButtonPressed {
     UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Name your party" message:@"Choose a name for your party" delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
     [alertView setAlertViewStyle:UIAlertViewStylePlainTextInput];
+    [alertView show];
 }
 
 - (void) joinPartyButtonPressed {
     NSLog(@"Joining party!");
 }
 
-#pragma mark - UIAlertView delegate 
+#pragma mark - UIAlertView delegate
 
 - (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
-    NSLog(@"Party name: %@", [[alertView textFieldAtIndex:0] text]);
+    HostPartyViewController *hpvc = [[HostPartyViewController alloc] initWithPartyName:[[alertView textFieldAtIndex:0] text]];
+    [self.navigationController pushViewController:hpvc animated:YES];
 }
 
 @end

@@ -8,6 +8,14 @@
 
 #import "AppDelegate.h"
 #import "HomeViewController.h"
+#import "HTTPServer.h"
+
+@interface AppDelegate()
+
+@property (nonatomic, strong) HTTPServer *httpServer;
+@property (nonatomic, assign) BOOL serverStarted;
+
+@end
 
 @implementation AppDelegate
 
@@ -17,9 +25,20 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    // set up the http server
+    self.httpServer = [[HTTPServer alloc] init];
+    [self.httpServer setType:@"_http._tcp."];
+    
+    NSString *webPath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Songs"];
+    NSLog(@"Setting document root: %@", webPath);
+    
+    [self.httpServer setDocumentRoot:webPath];
+    self.serverStarted = NO;
+
     HomeViewController *hvc = [[HomeViewController alloc] init];
+    UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:hvc];
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-    self.window.rootViewController = hvc;
+    self.window.rootViewController = navController;
     [self.window makeKeyAndVisible];
     return YES;
 }
@@ -32,13 +51,14 @@
 
 - (void)applicationDidEnterBackground:(UIApplication *)application
 {
-    // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later. 
-    // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+    [self.httpServer stop:YES];
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
-    // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
+    if(self.serverStarted){
+        [self.httpServer start:nil];
+    }
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application
@@ -145,6 +165,27 @@
 - (NSURL *)applicationDocumentsDirectory
 {
     return [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject];
+}
+
+
+#pragma  mark - HTTP server selectors
+
+- (NSError*)startServer {
+	NSError *error;
+	if([self.httpServer start:&error]) {
+		NSLog(@"Started HTTP Server on port %hu", [self.httpServer listeningPort]);
+        self.serverStarted = YES;
+        return nil;
+	}
+	else {
+		NSLog(@"Error starting HTTP Server: %@", error);
+        return error;
+	}
+}
+
+- (void) stopServer {
+    [self.httpServer stop];
+    self.serverStarted = NO;
 }
 
 @end
