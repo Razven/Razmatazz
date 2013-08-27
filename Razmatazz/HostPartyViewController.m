@@ -10,11 +10,14 @@
 #import "AppDelegate.h"
 #import <MediaPlayer/MediaPlayer.h>
 #import "ClientsConnectedViewController.h"
+#import <QuartzCore/QuartzCore.h>
 
 @interface HostPartyViewController ()
 
 @property (nonatomic, strong) NSString* partyName;
 @property (nonatomic, strong) NSError* serverError;
+
+@property (nonatomic, strong) UIView *songListLabelBackgroundView;
 @end
 
 @implementation HostPartyViewController
@@ -29,6 +32,7 @@
         self.statusLabel = [[UILabel alloc] init];
         self.songListLabel = [[UILabel alloc] init];
         self.songListTableView = [[UITableView alloc] init];
+        self.songListLabelBackgroundView = [[UIView alloc] init];
     }
     
     return self;
@@ -41,15 +45,26 @@
     self.statusLabel.backgroundColor = [UIColor darkGrayColor];
     [self.statusLabel setTextColor:[UIColor whiteColor]];
     
-    self.songListLabel.frame = CGRectMake(10, CGRectGetMaxY(self.statusLabel.frame) + 5, self.view.frame.size.width - 10, 30);
+    self.songListLabelBackgroundView.frame = CGRectMake(5, CGRectGetMaxY(self.statusLabel.frame) + 5, self.view.frame.size.width - 10, 40);
+    self.songListLabelBackgroundView.backgroundColor = [UIColor grayColor];
+    self.songListLabelBackgroundView.layer.cornerRadius = 3.0f;
+    
+    self.songListLabel.frame = CGRectMake(5, 0, self.songListLabelBackgroundView.frame.size.width - 10, 30);
     self.songListLabel.backgroundColor = [UIColor clearColor];
     [self.songListLabel setTextColor:[UIColor whiteColor]];
     self.songListLabel.text = @"Pick a song to play";
+//    [self.songListLabel setFont:[UIFont fontWithName:@"HelveticaNeue" size:18.0f]];
     
-    self.songListTableView.frame = CGRectMake(5, CGRectGetMaxY(self.songListLabel.frame), self.view.frame.size.width - 10, self.view.frame.size.height - CGRectGetMaxY(self.songListLabel.frame) - 5);
+    [self.songListLabelBackgroundView addSubview:self.songListLabel];
+    
+    self.songListTableView.frame = CGRectMake(5, CGRectGetMaxY(self.songListLabelBackgroundView.frame) - 10, self.view.frame.size.width - 10, self.view.frame.size.height - CGRectGetMaxY(self.songListLabel.frame) - 5);
     
     self.songListTableView.delegate = self;
     self.songListTableView.dataSource = self;
+    
+    self.songListTableView.layer.cornerRadius = 5.0f;
+    self.songListTableView.layer.borderWidth = 1.0f;
+    self.songListTableView.layer.borderColor = [UIColor darkGrayColor].CGColor;
     
     [self.songListTableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"SongNameCell"];
     
@@ -80,7 +95,8 @@
     
     [self.view addSubview:self.statusLabel];
     [self.view addSubview:self.songListLabel];
-    [self.view addSubview:self.songListTableView];
+    [self.view addSubview:self.songListLabelBackgroundView];
+    [self.view addSubview:self.songListTableView];    
     
     UIImage *groupIcon = [UIImage imageNamed:@"group.png"];
     UIBarButtonItem *viewClientsConnected = [[UIBarButtonItem alloc] initWithImage:groupIcon style:UIBarButtonItemStyleBordered target:self action:@selector(openClientsConnectedView)];
