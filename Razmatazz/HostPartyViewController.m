@@ -88,8 +88,7 @@
 }
 
 - (void) viewWillDisappear:(BOOL)animated {
-    [super viewWillDisappear:animated];    
-    [(AppDelegate*)[UIApplication sharedApplication].delegate stopServer];
+    [super viewWillDisappear:animated];
 }
 
 - (void)didReceiveMemoryWarning
@@ -113,6 +112,16 @@
     if (section == 0){
         MPMediaQuery *everything = [[MPMediaQuery alloc] init];
         NSArray *itemsFromGenericQuery = [everything items];
+        
+        //user has no songs in their iPod library
+        if([itemsFromGenericQuery count] == 0){
+            self.songListLabel.text = @"No songs found! Add some songs to your iPod library and try again";
+            self.songListLabel.center = self.view.center;
+            self.songListLabel.numberOfLines = 0;
+            self.songListLabel.textAlignment = NSTextAlignmentCenter;
+            [self.songListLabel sizeToFit];
+            self.songListTableView.hidden = YES;
+        }
         return [itemsFromGenericQuery count];
     } else {
         return 0;
@@ -137,6 +146,10 @@
     [cell.textLabel setText:songTitle];
     
     return cell;
+}
+
+- (UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section {
+    return [UIView new];
 }
 
 #pragma mark - BarButtonItem selectors

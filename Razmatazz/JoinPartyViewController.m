@@ -14,10 +14,15 @@
 
 @implementation JoinPartyViewController
 
+- (void) viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+}
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-	// Do any additional setup after loading the view.
+	
+    [self.navigationItem setTitle:@"Join a party"];
 }
 
 - (void)didReceiveMemoryWarning

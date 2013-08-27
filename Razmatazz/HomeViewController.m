@@ -11,6 +11,7 @@
 #import "AppDelegate.h"
 #import "StyleFactory.h"
 #import "HostPartyViewController.h"
+#import "JoinPartyViewController.h"
 
 @interface HomeViewController ()
 
@@ -74,11 +75,15 @@
     
     [self.view addSubview:self.joinPartyButton];
     [self.view addSubview:self.hostPartyButton];
+    
+    [self.navigationController.navigationBar setTintColor:[UIColor lightGrayColor]];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     [self.navigationItem setTitle:@"Home"];
+    
+    [(AppDelegate*)[UIApplication sharedApplication].delegate stopServer];
 }
 
 - (void)didReceiveMemoryWarning
@@ -96,7 +101,8 @@
 }
 
 - (void) joinPartyButtonPressed {
-    NSLog(@"Joining party!");
+    JoinPartyViewController *jpvc = [[JoinPartyViewController alloc] init];
+    [self.navigationController pushViewController:jpvc animated:YES];
 }
 
 #pragma mark - UIAlertView delegate
@@ -108,8 +114,10 @@
 }
 
 - (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
-    HostPartyViewController *hpvc = [[HostPartyViewController alloc] initWithPartyName:[[alertView textFieldAtIndex:0] text]];
-    [self.navigationController pushViewController:hpvc animated:YES];
+    if(buttonIndex == 1){
+        HostPartyViewController *hpvc = [[HostPartyViewController alloc] initWithPartyName:[[alertView textFieldAtIndex:0] text]];
+        [self.navigationController pushViewController:hpvc animated:YES];
+    }
 }
 
 @end

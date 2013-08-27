@@ -191,8 +191,11 @@
 }
 
 - (void) stopServer {
-    [self.httpServer stop];
-    self.serverStarted = NO;
+    if(self.serverStarted){
+        [self.httpServer stop];
+        NSLog(@"Stopping server");
+        self.serverStarted = NO;
+    }
 }
 
 @end
