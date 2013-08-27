@@ -44,6 +44,7 @@
 		38D74CC717CC53FE00F3EFD5 /* HostPartyViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 38D74CC617CC53FE00F3EFD5 /* HostPartyViewController.m */; };
 		38D74CCA17CC566A00F3EFD5 /* JoinPartyViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 38D74CC917CC566A00F3EFD5 /* JoinPartyViewController.m */; };
 		38D74CCC17CC57CC00F3EFD5 /* Songs in Resources */ = {isa = PBXBuildFile; fileRef = 38D74CCB17CC57CC00F3EFD5 /* Songs */; };
+		38D74CCF17CC695000F3EFD5 /* MediaPlayer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 38D74CCD17CC694B00F3EFD5 /* MediaPlayer.framework */; };
 		38F493EE17CC3B35005659B3 /* HomeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 38F493ED17CC3B35005659B3 /* HomeViewController.m */; };
 		38F493F217CC44EA005659B3 /* StyleFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = 38F493F117CC44EA005659B3 /* StyleFactory.m */; };
 /* End PBXBuildFile section */
@@ -115,6 +116,7 @@
 		38D74CC817CC566A00F3EFD5 /* JoinPartyViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JoinPartyViewController.h; sourceTree = "<group>"; };
 		38D74CC917CC566A00F3EFD5 /* JoinPartyViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JoinPartyViewController.m; sourceTree = "<group>"; };
 		38D74CCB17CC57CC00F3EFD5 /* Songs */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Songs; sourceTree = "<group>"; };
+		38D74CCD17CC694B00F3EFD5 /* MediaPlayer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaPlayer.framework; path = System/Library/Frameworks/MediaPlayer.framework; sourceTree = SDKROOT; };
 		38F493EC17CC3B35005659B3 /* HomeViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HomeViewController.h; sourceTree = "<group>"; };
 		38F493ED17CC3B35005659B3 /* HomeViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HomeViewController.m; sourceTree = "<group>"; };
 		38F493F017CC44EA005659B3 /* StyleFactory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleFactory.h; sourceTree = "<group>"; };
@@ -129,6 +131,7 @@
 				38C22EA017CBD59900014D39 /* UIKit.framework in Frameworks */,
 				38D74CC017CC52FD00F3EFD5 /* CFNetwork.framework in Frameworks */,
 				38C22EA217CBD59900014D39 /* Foundation.framework in Frameworks */,
+				38D74CCF17CC695000F3EFD5 /* MediaPlayer.framework in Frameworks */,
 				38D74CC317CC533200F3EFD5 /* Security.framework in Frameworks */,
 				38C22EA417CBD59900014D39 /* CoreGraphics.framework in Frameworks */,
 				38C22EA617CBD59900014D39 /* CoreData.framework in Frameworks */,
@@ -166,6 +169,7 @@
 		38C22E9E17CBD59900014D39 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				38D74CCD17CC694B00F3EFD5 /* MediaPlayer.framework */,
 				38D74CC117CC532C00F3EFD5 /* Security.framework */,
 				38D74CBE17CC52F600F3EFD5 /* CFNetwork.framework */,
 				38C22E9F17CBD59900014D39 /* UIKit.framework */,
@@ -450,7 +454,8 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "Razvan Bangu";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Razvan Bangu";
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -466,6 +471,8 @@
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
 				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				ONLY_ACTIVE_ARCH = YES;
+				PROVISIONING_PROFILE = "";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -483,7 +490,8 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "Razvan Bangu";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Razvan Bangu";
 				COPY_PHASE_STRIP = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
@@ -492,6 +500,8 @@
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
 				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				PROVISIONING_PROFILE = "";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;

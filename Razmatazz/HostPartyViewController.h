@@ -8,10 +8,10 @@
 
 #import <UIKit/UIKit.h>
 
-@interface HostPartyViewController : UIViewController
+@interface HostPartyViewController : UIViewController <UITableViewDelegate, UITableViewDataSource>
 
-@property (nonatomic, strong) UILabel *statusLabel, *usersConnectedLabel, *songListLabel;
-@property (nonatomic, strong) UITableView *usersConnectedTableView, *songListTableView;
+@property (nonatomic, strong) UILabel *statusLabel, *songListLabel;
+@property (nonatomic, strong) UITableView *songListTableView;
 
 - (id) initWithPartyName:(NSString*)partyName;
 

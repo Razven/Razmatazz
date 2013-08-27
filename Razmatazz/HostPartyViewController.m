@@ -8,6 +8,7 @@
 
 #import "HostPartyViewController.h"
 #import "AppDelegate.h"
+#import <MediaPlayer/MediaPlayer.h>
 
 @interface HostPartyViewController ()
 
@@ -23,6 +24,10 @@
     if(self){                
         self.partyName = partyName;
         self.serverError = [(AppDelegate*)[UIApplication sharedApplication].delegate startServer];
+        
+        self.statusLabel = [[UILabel alloc] init];
+        self.songListLabel = [[UILabel alloc] init];
+        self.songListTableView = [[UITableView alloc] init];
     }
     
     return self;
@@ -30,6 +35,22 @@
 
 - (void)viewWillLayoutSubviews {
     [super viewWillLayoutSubviews];
+    
+    self.statusLabel.frame = CGRectMake(0, 0, self.view.frame.size.width, 30);
+    self.statusLabel.backgroundColor = [UIColor darkGrayColor];
+    [self.statusLabel setTextColor:[UIColor whiteColor]];
+    
+    self.songListLabel.frame = CGRectMake(10, CGRectGetMaxY(self.statusLabel.frame) + 5, self.view.frame.size.width - 10, 30);
+    self.songListLabel.backgroundColor = [UIColor clearColor];
+    [self.songListLabel setTextColor:[UIColor whiteColor]];
+    self.songListLabel.text = @"Pick a song to play";
+    
+    self.songListTableView.frame = CGRectMake(5, CGRectGetMaxY(self.songListLabel.frame), self.view.frame.size.width - 10, self.view.frame.size.height - CGRectGetMaxY(self.songListLabel.frame) - 5);
+    
+    self.songListTableView.delegate = self;
+    self.songListTableView.dataSource = self;
+    
+    [self.songListTableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"SongNameCell"];
     
     self.view.backgroundColor = [UIColor lightGrayColor];
 }
@@ -44,9 +65,6 @@
 {
     [super viewDidLoad];
     
-    self.statusLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 30)];
-    self.statusLabel.center = CGPointMake(self.view.center.x, self.statusLabel.center.y);
-    
     if(self.serverError){
         // there was an error starting the server
         // TODO: provide a more descriptive error message based on the error returned
@@ -57,8 +75,11 @@
         // server started up successfully
         
         [self updateStatus:@"party room created!"];
-        
     }
+    
+    [self.view addSubview:self.statusLabel];
+    [self.view addSubview:self.songListLabel];
+    [self.view addSubview:self.songListTableView];
 }
 
 - (void) viewWillDisappear:(BOOL)animated {
@@ -73,9 +94,44 @@
 
 - (void) updateStatus:(NSString*)status {
     if(self.statusLabel){
-        self.statusLabel.text = [NSString stringWithFormat:@"Status: %@", status];
+        self.statusLabel.text = [NSString stringWithFormat:@" Status: %@", status];
     }
 }
 
+#pragma mark UITableView methods
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    if (section == 0){
+        MPMediaQuery *everything = [[MPMediaQuery alloc] init];
+        NSArray *itemsFromGenericQuery = [everything items];
+        return [itemsFromGenericQuery count];
+    } else {
+        return 0;
+    }
+}
+
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    // TODO: copy song from ipod library to app directory and send it to all clients connected to the web server
+    // URLs to look at: http://stackoverflow.com/questions/4746349/copy-ipod-music-library-audio-file-to-iphone-app-folder
+    // https://www.google.ca/search?q=ios+xcode+copy+song+from+ipod+to+app+directory&oq=ios+xcode+copy+song+from+ipod+to+app+directory&aqs=chrome..69i57.5915j0&sourceid=chrome&ie=UTF-8
+}
+
+- (UITableViewCell*) tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SongNameCell"];
+    
+    MPMediaQuery *everything = [[MPMediaQuery alloc] init];
+    NSArray *itemsFromGenericQuery = [everything items];
+    
+    MPMediaItem* song = [itemsFromGenericQuery objectAtIndex:indexPath.row];
+    NSURL *songURL = [song valueForProperty:MPMediaItemPropertyAssetURL];
+    NSString *songTitle = [song valueForProperty:MPMediaItemPropertyTitle];
+    [cell.textLabel setText:songTitle];
+    
+    return cell;
+}
 
 @end
