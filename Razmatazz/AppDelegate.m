@@ -41,6 +41,20 @@
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     self.window.rootViewController = self.navController;
     [self.window makeKeyAndVisible];
+    
+    // setup songs directory
+    
+    NSString *songsDirectory = [[(AppDelegate*)[UIApplication sharedApplication].delegate applicationDocumentsDirectory] absoluteString];
+    BOOL isDirectory = NO;
+    if([[NSFileManager defaultManager] fileExistsAtPath:songsDirectory isDirectory:&isDirectory]) {
+        if(!isDirectory){
+            [[NSFileManager defaultManager] removeItemAtPath:songsDirectory error:nil];
+            [[NSFileManager defaultManager] createDirectoryAtPath:songsDirectory withIntermediateDirectories:nil attributes:nil error:nil];
+        }
+    } else {
+        [[NSFileManager defaultManager] createDirectoryAtPath:songsDirectory withIntermediateDirectories:nil attributes:nil error:nil];
+    }
+    
     return YES;
 }
 

@@ -11,6 +11,7 @@
 #import <MediaPlayer/MediaPlayer.h>
 #import "ClientsConnectedViewController.h"
 #import <QuartzCore/QuartzCore.h>
+#import <AVFoundation/AVFoundation.h>
 
 @interface HostPartyViewController ()
 
@@ -148,6 +149,8 @@
     // TODO: copy song from ipod library to app directory and send it to all clients connected to the web server
     // URLs to look at: http://stackoverflow.com/questions/4746349/copy-ipod-music-library-audio-file-to-iphone-app-folder
     // https://www.google.ca/search?q=ios+xcode+copy+song+from+ipod+to+app+directory&oq=ios+xcode+copy+song+from+ipod+to+app+directory&aqs=chrome..69i57.5915j0&sourceid=chrome&ie=UTF-8
+    
+    [self transferSongToDoumentsDirectoryWithSongIndex:indexPath];
 }
 
 - (UITableViewCell*) tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -157,7 +160,6 @@
     NSArray *itemsFromGenericQuery = [everything items];
     
     MPMediaItem* song = [itemsFromGenericQuery objectAtIndex:indexPath.row];
-    NSURL *songURL = [song valueForProperty:MPMediaItemPropertyAssetURL];
     NSString *songTitle = [song valueForProperty:MPMediaItemPropertyTitle];
     [cell.textLabel setText:songTitle];
     
@@ -166,6 +168,42 @@
 
 - (UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section {
     return [UIView new];
+}
+
+#pragma mark - Music copying methods
+
+- (void)transferSongToDoumentsDirectoryWithSongIndex:(NSIndexPath*)songIndex {
+    [self updateStatus:@"exporting song"];
+    
+    MPMediaQuery *everything = [[MPMediaQuery alloc] init];
+    NSArray *itemsFromGenericQuery = [everything items];
+    
+    MPMediaItem* song = [itemsFromGenericQuery objectAtIndex:songIndex.row];
+    NSURL *songURL = [song valueForProperty:MPMediaItemPropertyAssetURL];
+    NSString *songTitle = [song valueForProperty:MPMediaItemPropertyTitle];
+    
+    AVURLAsset *songAsset = [AVURLAsset URLAssetWithURL:songURL options:nil];
+    
+    NSString *documentsDirectory = [[(AppDelegate*)[UIApplication sharedApplication].delegate applicationDocumentsDirectory] absoluteString];
+    
+    AVAssetExportSession *exporter = [[AVAssetExportSession alloc]
+                                      initWithAsset: songAsset
+                                      presetName: AVAssetExportPresetPassthrough];
+    
+    exporter.outputFileType = @"com.apple.m4a-audio";
+     NSString *exportFile = [documentsDirectory stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.mp4", songTitle]];
+    
+    if([[NSFileManager defaultManager] fileExistsAtPath:exportFile]) {        
+        [[NSFileManager defaultManager] removeItemAtPath:exportFile error:nil];
+    }
+    
+    NSURL* exportURL = [NSURL fileURLWithPath:exportFile];
+    exporter.outputURL = exportURL;
+    
+    [exporter exportAsynchronouslyWithCompletionHandler:^{
+        NSLog(@"Successfully exported %@ to %@", songTitle, exportURL);
+        [self updateStatus:@"song exported"];
+    }];
 }
 
 #pragma mark - BarButtonItem selectors
