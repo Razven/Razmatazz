@@ -191,7 +191,7 @@
                                       presetName: AVAssetExportPresetPassthrough];
     
     exporter.outputFileType = @"com.apple.m4a-audio";
-     NSString *exportFile = [documentsDirectory stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.mp4", songTitle]];
+     NSString *exportFile = [documentsDirectory stringByAppendingPathComponent:[NSString stringWithFormat:@"/Songs/%@.mp4", songTitle]];
     
     if([[NSFileManager defaultManager] fileExistsAtPath:exportFile]) {        
         [[NSFileManager defaultManager] removeItemAtPath:exportFile error:nil];
