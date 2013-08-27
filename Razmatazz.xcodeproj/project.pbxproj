@@ -18,6 +18,8 @@
 		38C22EB617CBD59900014D39 /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 38C22EB517CBD59900014D39 /* Default@2x.png */; };
 		38C22EB817CBD59900014D39 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 38C22EB717CBD59900014D39 /* Default-568h@2x.png */; };
 		38C22EBB17CBD59900014D39 /* Razmatazz.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 38C22EB917CBD59900014D39 /* Razmatazz.xcdatamodeld */; };
+		38F493EE17CC3B35005659B3 /* HomeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 38F493ED17CC3B35005659B3 /* HomeViewController.m */; };
+		38F493F217CC44EA005659B3 /* StyleFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = 38F493F117CC44EA005659B3 /* StyleFactory.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +38,10 @@
 		38C22EB517CBD59900014D39 /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default@2x.png"; sourceTree = "<group>"; };
 		38C22EB717CBD59900014D39 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		38C22EBA17CBD59900014D39 /* Razmatazz.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Razmatazz.xcdatamodel; sourceTree = "<group>"; };
+		38F493EC17CC3B35005659B3 /* HomeViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HomeViewController.h; sourceTree = "<group>"; };
+		38F493ED17CC3B35005659B3 /* HomeViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HomeViewController.m; sourceTree = "<group>"; };
+		38F493F017CC44EA005659B3 /* StyleFactory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleFactory.h; sourceTree = "<group>"; };
+		38F493F117CC44EA005659B3 /* StyleFactory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StyleFactory.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,6 +59,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		380156C217CBD9BA006E3C84 /* Third party */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "Third party";
+			sourceTree = "<group>";
+		};
 		38C22E9317CBD59900014D39 = {
 			isa = PBXGroup;
 			children = (
@@ -84,9 +97,14 @@
 		38C22EA717CBD59900014D39 /* Razmatazz */ = {
 			isa = PBXGroup;
 			children = (
+				38D74C7817CC4CC500F3EFD5 /* HTTP */,
+				38D74C7717CC4CB900F3EFD5 /* TCP */,
+				38F493EF17CC44D4005659B3 /* Helper classes */,
+				38F493EB17CC3B17005659B3 /* View controllers */,
 				38C22EB017CBD59900014D39 /* AppDelegate.h */,
 				38C22EB117CBD59900014D39 /* AppDelegate.m */,
 				38C22EB917CBD59900014D39 /* Razmatazz.xcdatamodeld */,
+				380156C217CBD9BA006E3C84 /* Third party */,
 				38C22EA817CBD59900014D39 /* Supporting Files */,
 			);
 			path = Razmatazz;
@@ -104,6 +122,38 @@
 				38C22EB717CBD59900014D39 /* Default-568h@2x.png */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		38D74C7717CC4CB900F3EFD5 /* TCP */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = TCP;
+			sourceTree = "<group>";
+		};
+		38D74C7817CC4CC500F3EFD5 /* HTTP */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = HTTP;
+			sourceTree = "<group>";
+		};
+		38F493EB17CC3B17005659B3 /* View controllers */ = {
+			isa = PBXGroup;
+			children = (
+				38F493EC17CC3B35005659B3 /* HomeViewController.h */,
+				38F493ED17CC3B35005659B3 /* HomeViewController.m */,
+			);
+			name = "View controllers";
+			sourceTree = "<group>";
+		};
+		38F493EF17CC44D4005659B3 /* Helper classes */ = {
+			isa = PBXGroup;
+			children = (
+				38F493F017CC44EA005659B3 /* StyleFactory.h */,
+				38F493F117CC44EA005659B3 /* StyleFactory.m */,
+			);
+			name = "Helper classes";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -141,6 +191,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				English,
 			);
 			mainGroup = 38C22E9317CBD59900014D39;
 			productRefGroup = 38C22E9D17CBD59900014D39 /* Products */;
@@ -174,6 +225,8 @@
 				38C22EAE17CBD59900014D39 /* main.m in Sources */,
 				38C22EB217CBD59900014D39 /* AppDelegate.m in Sources */,
 				38C22EBB17CBD59900014D39 /* Razmatazz.xcdatamodeld in Sources */,
+				38F493EE17CC3B35005659B3 /* HomeViewController.m in Sources */,
+				38F493F217CC44EA005659B3 /* StyleFactory.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -216,7 +269,8 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 6.1;
+				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -241,7 +295,8 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 6.1;
+				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -255,6 +310,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Razmatazz/Razmatazz-Prefix.pch";
 				INFOPLIST_FILE = "Razmatazz/Razmatazz-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -266,6 +322,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Razmatazz/Razmatazz-Prefix.pch";
 				INFOPLIST_FILE = "Razmatazz/Razmatazz-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -290,6 +347,7 @@
 				38C22EC017CBD59900014D39 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 
