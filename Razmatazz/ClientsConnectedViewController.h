@@ -10,4 +10,6 @@
 
 @interface ClientsConnectedViewController : UIViewController
 
+- (id) init;
+
 @end

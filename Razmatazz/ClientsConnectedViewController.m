@@ -7,6 +7,7 @@
 //
 
 #import "ClientsConnectedViewController.h"
+#import "RazConnectionManager.h"
 #import "AppDelegate.h"
 
 @interface ClientsConnectedViewController ()
@@ -16,6 +17,17 @@
 @end
 
 @implementation ClientsConnectedViewController
+
+- (id) init {
+    self = [super init];
+    
+    if(self){
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newClientConnected:) name:kClientConnectedNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(clientDisconnected:) name:kClientDisconnectedNotification object:nil];
+    }
+    
+    return self;
+}
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
@@ -31,10 +43,12 @@
 
 - (void)viewDidLoad
 {
-    [super viewDidLoad];
-	
-    // TODO: display actual number of connections
-    NSUInteger numberOfHTTPConnections = 0;
+    [super viewDidLoad];	
+    [self setupTitle];
+}
+
+- (void)setupTitle {
+    NSUInteger numberOfHTTPConnections = [[(AppDelegate*)[UIApplication sharedApplication].delegate sharedRazConnectionManager] getNumberOfActiveConnections];
     NSString *title = [NSString stringWithFormat:@"%lu %@ connected", (unsigned long)numberOfHTTPConnections, numberOfHTTPConnections == 1 ? @"person" : @"people"];
     [self.navigationItem setTitle:title];
 }
@@ -43,6 +57,20 @@
 {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+}
+
+- (void) dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+#pragma mark - NSNotificationCenter selectors
+
+- (void)newClientConnected:(NSNotification*)notification {
+    [self setupTitle];
+}
+
+- (void)clientDisconnected:(NSNotification*)notification {
+    [self setupTitle];
 }
 
 @end

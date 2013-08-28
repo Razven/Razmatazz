@@ -58,6 +58,7 @@
     [super viewWillLayoutSubviews];
     
     self.statusLabel.frame = CGRectMake(0, 0, self.view.frame.size.width, 30);
+    // [UIColor underPageBackgroundColor];
     self.statusLabel.backgroundColor = [UIColor darkGrayColor];
     [self.statusLabel setTextColor:[UIColor whiteColor]];
     
@@ -147,8 +148,8 @@
         
         //user has no songs in their iPod library
         if([itemsFromGenericQuery count] == 0){
+            self.songListLabelBackgroundView.frame = CGRectMake(self.songListLabelBackgroundView.frame.origin.x, self.songListLabelBackgroundView.frame.origin.y, self.songListLabelBackgroundView.frame.size.width, 45);
             self.songListLabel.text = @"No songs found! Add some songs to your iPod library and try again";
-            self.songListLabel.center = self.view.center;
             self.songListLabel.numberOfLines = 0;
             self.songListLabel.textAlignment = NSTextAlignmentCenter;
             [self.songListLabel sizeToFit];

@@ -80,6 +80,7 @@
                 // respectively.
             } else {
                 NSLog(@"Message received:%s", b);
+                [self send:b];
                 // We received a remote tap update, forward it to the appropriate view
                 //TODO: interpret the message we received in our 'b' buffer.
                 
@@ -108,7 +109,7 @@
     }
 }
 
-- (void)send:(uint8_t)message
+- (void)send:(uint8_t*)message
 {
     // Only write to the stream if it has space available, otherwise we might block.
     // In a real app you have to handle this case properly but in this sample code it's
@@ -123,7 +124,7 @@
     if ( [self.outputStream hasSpaceAvailable] ) {
         NSInteger   bytesWritten;
         
-        bytesWritten = [self.outputStream write:&message maxLength:sizeof(message)];
+        bytesWritten = [self.outputStream write:message maxLength:sizeof(message)];
         if (bytesWritten != sizeof(message)) {
             // TODO: didn't manage to send the whole message
         }

@@ -33,6 +33,10 @@
     return self;
 }
 
+- (NSUInteger) getNumberOfActiveConnections {
+    return [self.connectionsArray count];
+}
+
 - (void) startServer {
     [self.server start];
     if(self.server.registeredName != nil){
@@ -92,7 +96,6 @@
     }
 }
 
-
 #pragma mark - QServer delegate
 
 - (void)serverDidStart:(QServer *)server {
@@ -112,8 +115,9 @@
     [connection openAllStreams];
     
     [self.connectionsArray addObject:connection];
+    result  = connection;
     
-    result  = connection;    
+    [[NSNotificationCenter defaultCenter] postNotificationName:kClientConnectedNotification object:connection];
     return result;
 }
 
@@ -126,6 +130,7 @@
 
 - (void)connectionDidClose:(id)connection {
     [self.connectionsArray removeObject:connection];
+    [[NSNotificationCenter defaultCenter] postNotificationName:kClientDisconnectedNotification object:connection];
 }
 
 @end

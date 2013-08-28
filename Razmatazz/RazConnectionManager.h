@@ -12,6 +12,8 @@
 
 - (id) init;
 
+- (NSUInteger) getNumberOfActiveConnections;
+
 - (void) startServer;
 - (void) stopServer;
 

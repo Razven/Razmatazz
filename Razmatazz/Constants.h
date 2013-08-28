@@ -16,6 +16,9 @@
 #define kServerStartedNotification @"QServerStarted"
 #define kServerStoppedNotification @"QServerStopped"
 
+#define kClientConnectedNotification @"ClientConnected"
+#define kClientDisconnectedNotification @"ClientDisconnected"
+
 
 
 #endif
