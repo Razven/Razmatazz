@@ -105,7 +105,7 @@
 }
 
 - (void) joinPartyButtonPressed {
-    JoinPartyViewController *jpvc = [[JoinPartyViewController alloc] init];
+    JoinPartyViewController *jpvc = [[JoinPartyViewController alloc] initWithType:kRazmatazzBonjourType];
     [self.navigationController pushViewController:jpvc animated:YES];
 }
 

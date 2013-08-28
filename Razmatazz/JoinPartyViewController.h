@@ -10,4 +10,9 @@
 
 @interface JoinPartyViewController : UIViewController
 
+@property (nonatomic, strong, readwrite) NSNetService *         localService;
+@property (nonatomic, copy)              NSString *             type;
+
+- (id) initWithType:(NSString*)type;
+
 @end
