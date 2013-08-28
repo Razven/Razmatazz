@@ -10,4 +10,6 @@
 
 @interface HomeViewController : UIViewController <UIAlertViewDelegate>
 
+- (id) init;
+
 @end

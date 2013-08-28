@@ -12,6 +12,8 @@
 #import "ClientsConnectedViewController.h"
 #import <QuartzCore/QuartzCore.h>
 #import <AVFoundation/AVFoundation.h>
+#import "RazConnectionManager.h"
+#import "QServer.h"
 
 @interface HostPartyViewController ()
 
@@ -19,6 +21,8 @@
 @property (nonatomic, strong) NSError* serverError;
 
 @property (nonatomic, strong) UIView *songListLabelBackgroundView;
+
+@property (nonatomic, strong) RazConnectionManager* razConnectionManager;
 @end
 
 @implementation HostPartyViewController
@@ -28,15 +32,26 @@
     
     if(self){                
         self.partyName = partyName;
-        self.serverError = [(AppDelegate*)[UIApplication sharedApplication].delegate startServer];
         
         self.statusLabel = [[UILabel alloc] init];
         self.songListLabel = [[UILabel alloc] init];
         self.songListTableView = [[UITableView alloc] init];
         self.songListLabelBackgroundView = [[UIView alloc] init];
+        
+        self.razConnectionManager = [(AppDelegate*)[UIApplication sharedApplication].delegate sharedRazConnectionManager];
+        
+        [self.razConnectionManager startServer];
+        [self.razConnectionManager registerServerWithName:self.partyName];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(serverDidStart:) name:kServerStartedNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(serverDidStop:) name:kServerStoppedNotification object:nil];
     }
     
     return self;
+}
+
+- (void) dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (void)viewWillLayoutSubviews {
@@ -184,14 +199,12 @@
     
     AVURLAsset *songAsset = [AVURLAsset URLAssetWithURL:songURL options:nil];
     
-    NSString *documentsDirectory = [[(AppDelegate*)[UIApplication sharedApplication].delegate applicationDocumentsDirectory] absoluteString];
-    
     AVAssetExportSession *exporter = [[AVAssetExportSession alloc]
                                       initWithAsset: songAsset
                                       presetName: AVAssetExportPresetPassthrough];
     
     exporter.outputFileType = @"com.apple.m4a-audio";
-     NSString *exportFile = [documentsDirectory stringByAppendingPathComponent:[NSString stringWithFormat:@"/Songs/%@.mp4", songTitle]];
+     NSString *exportFile = [APPLICATION_SONGS_DIRECTORY stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.mp4", songTitle]];
     
     if([[NSFileManager defaultManager] fileExistsAtPath:exportFile]) {        
         [[NSFileManager defaultManager] removeItemAtPath:exportFile error:nil];
@@ -200,9 +213,9 @@
     NSURL* exportURL = [NSURL fileURLWithPath:exportFile];
     exporter.outputURL = exportURL;
     
-    [exporter exportAsynchronouslyWithCompletionHandler:^{
+    [exporter exportAsynchronouslyWithCompletionHandler:^{        	
+        [self updateStatus:@"song exported"];        
         NSLog(@"Successfully exported %@ to %@", songTitle, exportURL);
-        [self updateStatus:@"song exported"];
     }];
 }
 
@@ -211,6 +224,16 @@
 - (void) openClientsConnectedView {
     ClientsConnectedViewController *ccvc = [[ClientsConnectedViewController alloc] init];
     [self.navigationController pushViewController:ccvc animated:YES];
+}
+
+#pragma QServer delegate
+
+- (void)serverDidStart:(NSNotification*)notification {
+    [self updateStatus:@"server is running!"];
+}
+
+- (void)serverDidStop:(NSNotificationCenter*)notification {
+    [self updateStatus:@"server is down!"];
 }
 
 @end

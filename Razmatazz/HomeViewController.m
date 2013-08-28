@@ -11,26 +11,28 @@
 #import "AppDelegate.h"
 #import "StyleFactory.h"
 #import "HostPartyViewController.h"
+#import "RazConnectionManager.h"
 #import "JoinPartyViewController.h"
 
 @interface HomeViewController ()
 
 @property (nonatomic, strong) UIButton *joinPartyButton, *hostPartyButton;
+@property (nonatomic, weak) RazConnectionManager* razConnectionManager;
 
 @end
 
 @implementation HomeViewController
 
-- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
-{
-    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
-    if (self) {
-        self.joinPartyButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        self.hostPartyButton = [UIButton buttonWithType:UIButtonTypeCustom];        
+- (id) init {
+    self = [super init];
+    
+    if(self) {
+        self.joinPartyButton = [[UIButton alloc] init];
+        self.hostPartyButton = [[UIButton alloc] init];
     }
+    
     return self;
 }
-
 - (void)viewWillLayoutSubviews {
     [super viewWillLayoutSubviews];
     
@@ -77,13 +79,15 @@
     [self.view addSubview:self.hostPartyButton];
     
     [self.navigationController.navigationBar setTintColor:[UIColor lightGrayColor]];
+    
+    self.razConnectionManager = [(AppDelegate*)[UIApplication sharedApplication].delegate sharedRazConnectionManager];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     [self.navigationItem setTitle:@"Home"];
     
-    [(AppDelegate*)[UIApplication sharedApplication].delegate stopServer];
+    [self.razConnectionManager stopServer];
 }
 
 - (void)didReceiveMemoryWarning

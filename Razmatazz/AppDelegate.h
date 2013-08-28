@@ -8,6 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
+@class RazConnectionManager;
+
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
@@ -20,8 +22,6 @@
 - (NSURL *)applicationDocumentsDirectory;
 
 - (void) pushViewController:(UIViewController*)viewController animated:(BOOL)animated;
-
-- (NSError*)startServer;
-- (void)stopServer;
+- (RazConnectionManager*) sharedRazConnectionManager;
 
 @end

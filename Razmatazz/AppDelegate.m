@@ -8,11 +8,11 @@
 
 #import "AppDelegate.h"
 #import "HomeViewController.h"
-#import "HTTPServer.h"
+#import "RazConnectionManager.h"
 
 @interface AppDelegate()
 
-@property (nonatomic, strong) HTTPServer *httpServer;
+@property (nonatomic, strong) RazConnectionManager *RazCM;
 @property (nonatomic, assign) BOOL serverStarted;
 @property (nonatomic, strong) UINavigationController *navController;
 
@@ -26,34 +26,26 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    // set up the http server
-    self.httpServer = [[HTTPServer alloc] init];
-    [self.httpServer setType:@"_http._tcp."];
+    NSString *songsDirectory = APPLICATION_SONGS_DIRECTORY;
     
-    NSString *webPath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Songs"];
-    NSLog(@"Setting document root: %@", webPath);
+    // setup songs directory
+    BOOL isDirectory = NO;
+    if([[NSFileManager defaultManager] fileExistsAtPath:songsDirectory isDirectory:&isDirectory]) {
+        if(!isDirectory){
+            [[NSFileManager defaultManager] removeItemAtPath:songsDirectory error:nil];
+            [[NSFileManager defaultManager] createDirectoryAtPath:songsDirectory withIntermediateDirectories:NO attributes:nil error:nil];
+        }
+    } else {
+        [[NSFileManager defaultManager] createDirectoryAtPath:songsDirectory withIntermediateDirectories:NO attributes:nil error:nil];
+    }
     
-    [self.httpServer setDocumentRoot:webPath];
-    self.serverStarted = NO;
+    self.RazCM = [[RazConnectionManager alloc] init];
 
     HomeViewController *hvc = [[HomeViewController alloc] init];
     self.navController = [[UINavigationController alloc] initWithRootViewController:hvc];
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     self.window.rootViewController = self.navController;
-    [self.window makeKeyAndVisible];
-    
-    // setup songs directory
-    
-    NSString *songsDirectory = [[(AppDelegate*)[UIApplication sharedApplication].delegate applicationDocumentsDirectory] absoluteString];
-    BOOL isDirectory = NO;
-    if([[NSFileManager defaultManager] fileExistsAtPath:songsDirectory isDirectory:&isDirectory]) {
-        if(!isDirectory){
-            [[NSFileManager defaultManager] removeItemAtPath:songsDirectory error:nil];
-            [[NSFileManager defaultManager] createDirectoryAtPath:songsDirectory withIntermediateDirectories:nil attributes:nil error:nil];
-        }
-    } else {
-        [[NSFileManager defaultManager] createDirectoryAtPath:songsDirectory withIntermediateDirectories:nil attributes:nil error:nil];
-    }
+    [self.window makeKeyAndVisible];   
     
     return YES;
 }
@@ -66,14 +58,12 @@
 
 - (void)applicationDidEnterBackground:(UIApplication *)application
 {
-    [self.httpServer stop:YES];
+    [self.RazCM prepareForBackgrounding];
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
-    if(self.serverStarted){
-        [self.httpServer start:nil];
-    }
+    [self.RazCM startServer];
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application
@@ -183,32 +173,18 @@
 #pragma mark - Application's Documents directory
 
 // Returns the URL to the application's Documents directory.
-- (NSURL *)applicationDocumentsDirectory
-{
+- (NSURL *)applicationDocumentsDirectory {
     return [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject];
 }
 
+#pragma mark - RazConnectionManager methods
 
-#pragma  mark - HTTP server selectors
-
-- (NSError*)startServer {
-	NSError *error;
-	if([self.httpServer start:&error]) {
-		NSLog(@"Started HTTP Server on port %hu", [self.httpServer listeningPort]);
-        self.serverStarted = YES;
-        return nil;
-	}
-	else {
-		NSLog(@"Error starting HTTP Server: %@", error);
-        return error;
-	}
-}
-
-- (void) stopServer {
-    if(self.serverStarted){
-        [self.httpServer stop];
-        NSLog(@"Stopping server");
-        self.serverStarted = NO;
+- (RazConnectionManager*)sharedRazConnectionManager {
+    if(self.RazCM){
+        return self.RazCM;
+    } else {
+        self.RazCM = [[RazConnectionManager alloc] init];
+        return self.RazCM;
     }
 }
 

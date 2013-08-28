@@ -7,8 +7,11 @@
 //
 
 #import "ClientsConnectedViewController.h"
+#import "AppDelegate.h"
 
 @interface ClientsConnectedViewController ()
+
+@property (nonatomic, strong) UILabel *numberOfClientsLabel;
 
 @end
 
@@ -30,7 +33,10 @@
 {
     [super viewDidLoad];
 	
-    [self.navigationItem setTitle:@"People connected"];
+    // TODO: display actual number of connections
+    NSUInteger numberOfHTTPConnections = 0;
+    NSString *title = [NSString stringWithFormat:@"%lu %@ connected", (unsigned long)numberOfHTTPConnections, numberOfHTTPConnections == 1 ? @"person" : @"people"];
+    [self.navigationItem setTitle:title];
 }
 
 - (void)didReceiveMemoryWarning
