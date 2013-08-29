@@ -74,7 +74,7 @@
     
     [self.songListLabelBackgroundView addSubview:self.songListLabel];
     
-    self.songListTableView.frame = CGRectMake(5, CGRectGetMaxY(self.songListLabelBackgroundView.frame) - 10, self.view.frame.size.width - 10, self.view.frame.size.height - CGRectGetMaxY(self.songListLabel.frame) - 5);
+    self.songListTableView.frame = CGRectMake(5, CGRectGetMaxY(self.songListLabelBackgroundView.frame) - 10, self.view.frame.size.width - 10, self.view.frame.size.height - (CGRectGetMaxY(self.songListLabelBackgroundView.frame) - 5));
     
     self.songListTableView.delegate = self;
     self.songListTableView.dataSource = self;
