@@ -14,7 +14,7 @@
 #import "RazConnectionManager.h"
 #import "JoinPartyViewController.h"
 
-@interface HomeViewController ()
+@interface HomeViewController () < UITextFieldDelegate >
 
 @property (nonatomic, strong) UIButton *joinPartyButton, *hostPartyButton;
 @property (nonatomic, weak) RazConnectionManager* razConnectionManager;
@@ -101,6 +101,7 @@
 - (void) hostPartyButtonPressed {
     UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Name your party" message:@"Choose a name for your party" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"OK", nil];
     [alertView setAlertViewStyle:UIAlertViewStylePlainTextInput];
+    [alertView textFieldAtIndex:0].delegate = self;
     [alertView show];
 }
 
@@ -122,6 +123,12 @@
         HostPartyViewController *hpvc = [[HostPartyViewController alloc] initWithPartyName:[[alertView textFieldAtIndex:0] text]];
         [self.navigationController pushViewController:hpvc animated:YES];
     }
+}
+
+#pragma mark - UITextField delegate
+
+-(BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
+    return (range.location < 10);
 }
 
 @end

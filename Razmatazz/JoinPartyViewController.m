@@ -11,12 +11,12 @@
 
 @interface JoinPartyViewController () < UITableViewDataSource, UITableViewDelegate, NSNetServiceBrowserDelegate >
 
-@property (nonatomic, strong) UITableView *                     clientsConnectedTableView;
+@property (nonatomic, strong)            UITableView *          clientsConnectedTableView;
 @property (nonatomic, strong)            NSMutableArray *       services;
 @property (nonatomic, strong, readwrite) NSNetServiceBrowser *  browser;
 
-@property (nonatomic, strong) UIView *                          connectView;
-@property (nonatomic, strong) UILabel *                              connectViewInfolabel;
+@property (nonatomic, strong)            UIView *               connectView;
+@property (nonatomic, strong)            UILabel *              connectViewInfolabel;
 
 @end
 
@@ -46,28 +46,47 @@
 - (void) viewWillLayoutSubviews {
     [super viewWillLayoutSubviews];
     
-    self.clientsConnectedTableView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
+    self.clientsConnectedTableView.frame = CGRectMake(5, 5, self.view.frame.size.width - 10, self.view.frame.size.height - 10);
     self.clientsConnectedTableView.backgroundColor = [UIColor lightGrayColor];
+    self.clientsConnectedTableView.layer.cornerRadius = 3.0f;
+    self.clientsConnectedTableView.layer.borderWidth = 1.0f;
+    self.clientsConnectedTableView.layer.borderColor = [UIColor whiteColor].CGColor;
     
-    [self.connectView setFrame:CGRectMake(0, 0, 200, 200)];
-    self.connectView.center = self.view.center;
-    
+    [self.connectView setFrame:CGRectMake(0, self.view.frame.size.height, 200, 200)];
+    self.connectView.center = CGPointMake(self.view.center.x, self.connectView.center.y);
     self.connectView.layer.cornerRadius = 3.0f;
-    self.connectView.layer.borderColor = [UIColor darkGrayColor].CGColor;
-    self.connectView.layer.borderWidth = 2.0f;
+    self.connectView.layer.borderColor = [UIColor whiteColor].CGColor;
+    self.connectView.layer.borderWidth = 1.0f;
+    self.connectView.backgroundColor = [UIColor darkGrayColor];
+    self.connectView.clipsToBounds = YES;
     
-    [self.connectViewInfolabel setFrame:CGRectMake(0, 0, self.connectView.frame.size.width, 30)];
+    [self.connectViewInfolabel setFrame:CGRectMake(0, 0, self.connectView.frame.size.width, 45)];
     [self.connectViewInfolabel setNumberOfLines:0];
     [self.connectViewInfolabel setBackgroundColor:[UIColor clearColor]];
+    self.connectViewInfolabel.textColor = [UIColor whiteColor];
+    self.connectViewInfolabel.backgroundColor = [UIColor lightGrayColor];
+    self.connectViewInfolabel.textAlignment = NSTextAlignmentCenter;
     
-    UIButton *cancelConnectionButton = [[UIButton alloc] initWithFrame:CGRectMake(0, self.connectView.frame.size.height - 80, 60, 30)];
+    UIButton *cancelConnectionButton = [[UIButton alloc] initWithFrame:CGRectMake(0, self.connectView.frame.size.height - 80, 70, 30)];
+    cancelConnectionButton.center = CGPointMake(CGRectGetMidX(self.connectView.bounds), cancelConnectionButton.center.y);
     [cancelConnectionButton setTitle:@"Cancel" forState:UIControlStateNormal];
     [cancelConnectionButton setTitle:@"Cancel" forState:UIControlStateHighlighted];
+    cancelConnectionButton.layer.cornerRadius = 3.0f;
+    cancelConnectionButton.layer.borderWidth = 1.0f;
+    cancelConnectionButton.layer.borderColor = [UIColor whiteColor].CGColor;
+    cancelConnectionButton.backgroundColor = [UIColor lightGrayColor];
+    
+    UIActivityIndicatorView * spinnerView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+    spinnerView.center = CGPointMake(CGRectGetMidX(self.connectView.bounds), CGRectGetMidY(self.connectView.bounds) - 17);
+    [spinnerView startAnimating];
     
     [cancelConnectionButton addTarget:self action:@selector(cancelConnectingButtonPressed) forControlEvents:UIControlEventTouchUpInside];
     
     [self.connectView addSubview:self.connectViewInfolabel];
     [self.connectView addSubview:cancelConnectionButton];
+    [self.connectView addSubview:spinnerView];
+    
+    self.view.backgroundColor = [UIColor darkGrayColor];
 }
 
 - (void) viewWillAppear:(BOOL)animated {
@@ -102,21 +121,13 @@
     [self removeObserver:self forKeyPath:@"localService" context:&self->_localService];
 }
 
-- (void)start
-// See comment in header.
-{
-    assert([self.services count] == 0);
-    
-    assert(self.browser == nil);
-    
+- (void)start {    
     self.browser = [[NSNetServiceBrowser alloc] init];
     [self.browser setDelegate:self];
     [self.browser searchForServicesOfType:self.type inDomain:@"local"];
 }
 
-- (void)stop
-// See comment in header.
-{
+- (void)stop {
     [self.browser stop];
     self.browser = nil;
     
@@ -158,9 +169,15 @@
     cell = [self.clientsConnectedTableView dequeueReusableCellWithIdentifier:@"cell"];
     if (cell == nil) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"cell"];
-        assert(cell != nil);
     }
     cell.textLabel.text = service.name;
+    
+    cell.textLabel.textColor = [UIColor whiteColor];
+    
+    UIView * cellSelectedBackgroundView = [[UIView alloc] initWithFrame:cell.frame];
+    cellSelectedBackgroundView.backgroundColor = [UIColor darkGrayColor];
+    
+    cell.selectedBackgroundView = cellSelectedBackgroundView;
     
     return cell;
 }
@@ -188,9 +205,9 @@
     return 0.0f;
 }
 
-- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
-    return 0.0f;
-}
+//- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
+//    return 0.0f;
+//}
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     return 40.0f;
@@ -207,15 +224,28 @@
 #pragma mark * Connection-in-progress UI management
 
 - (void)showConnectViewForService:(NSNetService *)service {    
-    self.connectViewInfolabel.text = [NSString stringWithFormat:@"Connecting to %@...", [service name]];
+    self.connectViewInfolabel.text = [NSString stringWithFormat:@"Connecting to %@", [service name]];
     [self.clientsConnectedTableView addSubview:self.connectView];
+    
+    [self.navigationItem setHidesBackButton:YES animated:YES];
+    
+    [UIView animateWithDuration:0.3f animations:^{
+        self.connectView.center = CGPointMake(self.connectView.center.x, self.view.center.y);
+    }];
+    
     self.clientsConnectedTableView.scrollEnabled = NO;
     self.clientsConnectedTableView.allowsSelection = NO;
 }
 
 - (void)hideConnectView {
     if (self.connectView.superview != nil) {
-        [self.connectView removeFromSuperview];
+        
+        [UIView animateWithDuration:0.3f animations:^{
+            self.connectView.frame = CGRectMake(self.connectView.frame.origin.x, self.view.frame.size.height, self.connectView.frame.size.width, self.connectView.frame.size.height);
+        } completion:^(BOOL finished) {
+            [self.connectView removeFromSuperview];
+            [self.navigationItem setHidesBackButton:NO animated:YES];
+        }];
         
         self.clientsConnectedTableView.scrollEnabled = YES;
         self.clientsConnectedTableView.allowsSelection = YES;
@@ -236,39 +266,32 @@
         return [[obj1 name] localizedCaseInsensitiveCompare:[obj2 name]];
     }];
     
-    // Reload if the view is loaded.
-    
     if (self.isViewLoaded) {
         [self.clientsConnectedTableView reloadData];
     }
 }
 
-- (void)netServiceBrowser:(NSNetServiceBrowser *)browser didRemoveService:(NSNetService *)service moreComing:(BOOL)moreComing
-{    
-    if ((self.localService == nil) || ! [self.localService isEqual:service]) {
+- (void)netServiceBrowser:(NSNetServiceBrowser *)browser didRemoveService:(NSNetService *)service moreComing:(BOOL)moreComing {    
+    if ((self.localService == nil) || ![self.localService isEqual:service]) {
         [self.services removeObject:service];
     }
-    
-    // Only update the UI once we get the no-more-coming indication.
     
     if (!moreComing) {
         [self sortAndReloadTable];
     }
 }
 
-- (void)netServiceBrowser:(NSNetServiceBrowser *)browser didFindService:(NSNetService *)service moreComing:(BOOL)moreComing
-{
+- (void)netServiceBrowser:(NSNetServiceBrowser *)browser didFindService:(NSNetService *)service moreComing:(BOOL)moreComing {
     if ((self.localService == nil) || ! [self.localService isEqual:service]) {
         [self.services addObject:service];
     }
     
-    if (! moreComing) {
+    if (!moreComing) {
         [self sortAndReloadTable];
     }
 }
 
-- (void)netServiceBrowser:(NSNetServiceBrowser *)browser didNotSearch:(NSDictionary *)errorDict
-{
+- (void)netServiceBrowser:(NSNetServiceBrowser *)browser didNotSearch:(NSDictionary *)errorDict {
     NSLog(@"browser did not search.");
 }
 
