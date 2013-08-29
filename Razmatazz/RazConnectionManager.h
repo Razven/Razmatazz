@@ -8,14 +8,20 @@
 
 #import <Foundation/Foundation.h>
 
+@class RazConnection;
+
 @interface RazConnectionManager : NSObject
 
 - (id) init;
 
-- (NSUInteger) getNumberOfActiveConnections;
+- (NSUInteger) getNumberOfActiveClients;
 
 - (void) startServer;
 - (void) stopServer;
+
+- (void) closePartyServerStream;
+
+- (void) setServerConnection:(RazConnection*)serverConnection;
 
 - (void) registerServerWithName:(NSString*)name;
 

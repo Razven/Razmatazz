@@ -14,7 +14,8 @@
 
 @property (nonatomic, strong, readwrite) QServer *              server;
 @property (nonatomic, assign, readwrite) NSUInteger             streamOpenCount;
-@property (nonatomic, strong)            NSMutableArray*        connectionsArray;
+@property (nonatomic, strong)            NSMutableArray *       connectionsArray;
+@property (nonatomic, strong)            RazConnection *        serverConnection;
 
 @end
 
@@ -33,7 +34,7 @@
     return self;
 }
 
-- (NSUInteger) getNumberOfActiveConnections {
+- (NSUInteger) getNumberOfActiveClients {
     return [self.connectionsArray count];
 }
 
@@ -71,6 +72,12 @@
     }
     
     [self.connectionsArray removeAllObjects];
+    
+    if(self.serverConnection){
+        [self.serverConnection closeAllStreams];
+    }
+    
+    self.serverConnection = nil;
 }
 
 - (void) setupForNewParty {
@@ -81,19 +88,32 @@
     }
 }
 
+- (void) setServerConnection:(id)serverConnection {
+    [self.serverConnection setDelegate:self];
+    _serverConnection = serverConnection;
+}
+
 #pragma mark - Stream management
 
-- (void)openStreams
+- (void)openClientStreams
 {
     for(RazConnection* connection in self.connectionsArray){
         [connection openAllStreams];
     }
 }
 
-- (void)closeStreams {
+- (void)closeClientStreams {
     for(RazConnection* connection in self.connectionsArray){
         [connection closeAllStreams];
     }
+}
+
+- (void)openPartyServerStream {
+    [self.serverConnection openAllStreams];
+}
+
+- (void)closePartyServerStream {
+    [self.serverConnection closeAllStreams];
 }
 
 #pragma mark - QServer delegate
@@ -129,8 +149,13 @@
 #pragma mark - RazConnection delegate
 
 - (void)connectionDidClose:(id)connection {
-    [self.connectionsArray removeObject:connection];
-    [[NSNotificationCenter defaultCenter] postNotificationName:kClientDisconnectedNotification object:connection];
+    if(self.serverConnection && [connection isEqual:self.serverConnection]){
+        self.serverConnection = nil;
+        [[NSNotificationCenter defaultCenter] postNotificationName:kServerDisconnectedNotification object:connection];
+    } else {
+        [self.connectionsArray removeObject:connection];
+        [[NSNotificationCenter defaultCenter] postNotificationName:kClientDisconnectedNotification object:connection];
+    }
 }
 
 @end

@@ -48,7 +48,7 @@
 }
 
 - (void)setupTitle {
-    NSUInteger numberOfHTTPConnections = [[(AppDelegate*)[UIApplication sharedApplication].delegate sharedRazConnectionManager] getNumberOfActiveConnections];
+    NSUInteger numberOfHTTPConnections = [[(AppDelegate*)[UIApplication sharedApplication].delegate sharedRazConnectionManager] getNumberOfActiveClients];
     NSString *title = [NSString stringWithFormat:@"%lu %@ connected", (unsigned long)numberOfHTTPConnections, numberOfHTTPConnections == 1 ? @"person" : @"people"];
     [self.navigationItem setTitle:title];
 }

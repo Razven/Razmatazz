@@ -14,6 +14,7 @@
 		38A2540C17CD4CC200F76BD5 /* group.png in Resources */ = {isa = PBXBuildFile; fileRef = 38A2540B17CD4CC200F76BD5 /* group.png */; };
 		38A2541617CD62B000F76BD5 /* AssetsLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 38A2541417CD62A800F76BD5 /* AssetsLibrary.framework */; };
 		38A2541917CD638F00F76BD5 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 38A2541717CD638400F76BD5 /* AVFoundation.framework */; };
+		38A6E69317CFBCB000D77D76 /* PartyRoomViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 38A6E69217CFBCB000D77D76 /* PartyRoomViewController.m */; };
 		38A7381D17CF16460052692E /* RazInfoPopupView.m in Sources */ = {isa = PBXBuildFile; fileRef = 38A7381C17CF16460052692E /* RazInfoPopupView.m */; };
 		38C22EA017CBD59900014D39 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 38C22E9F17CBD59900014D39 /* UIKit.framework */; };
 		38C22EA217CBD59900014D39 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 38C22EA117CBD59900014D39 /* Foundation.framework */; };
@@ -48,6 +49,8 @@
 		38A2540B17CD4CC200F76BD5 /* group.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = group.png; sourceTree = "<group>"; };
 		38A2541417CD62A800F76BD5 /* AssetsLibrary.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AssetsLibrary.framework; path = System/Library/Frameworks/AssetsLibrary.framework; sourceTree = SDKROOT; };
 		38A2541717CD638400F76BD5 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		38A6E69117CFBCB000D77D76 /* PartyRoomViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PartyRoomViewController.h; sourceTree = "<group>"; };
+		38A6E69217CFBCB000D77D76 /* PartyRoomViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PartyRoomViewController.m; sourceTree = "<group>"; };
 		38A7381B17CF16460052692E /* RazInfoPopupView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RazInfoPopupView.h; sourceTree = "<group>"; };
 		38A7381C17CF16460052692E /* RazInfoPopupView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RazInfoPopupView.m; sourceTree = "<group>"; };
 		38C22E9C17CBD59900014D39 /* Razmatazz.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Razmatazz.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -213,6 +216,8 @@
 				38D74CC917CC566A00F3EFD5 /* JoinPartyViewController.m */,
 				38D74CD017CC6CC400F3EFD5 /* ClientsConnectedViewController.h */,
 				38D74CD117CC6CC400F3EFD5 /* ClientsConnectedViewController.m */,
+				38A6E69117CFBCB000D77D76 /* PartyRoomViewController.h */,
+				38A6E69217CFBCB000D77D76 /* PartyRoomViewController.m */,
 			);
 			name = "View controllers";
 			sourceTree = "<group>";
@@ -307,6 +312,7 @@
 				389AE7CE17CE65C700C9FFA7 /* QServer.m in Sources */,
 				389AE7D217CE9C2400C9FFA7 /* RazConnection.m in Sources */,
 				38A7381D17CF16460052692E /* RazInfoPopupView.m in Sources */,
+				38A6E69317CFBCB000D77D76 /* PartyRoomViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

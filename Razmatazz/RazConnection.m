@@ -10,9 +10,10 @@
 
 @interface RazConnection() <NSStreamDelegate>
 
-@property (nonatomic, strong, readwrite) NSInputStream *         inputStream;
+@property (nonatomic, strong, readwrite) NSInputStream *        inputStream;
 @property (nonatomic, strong, readwrite) NSOutputStream *       outputStream;
-@property (nonatomic, strong)            NSString *             clientName;
+
+@property (nonatomic, assign) BOOL                              inputStreamOpened, outputStreamOpened;
 
 @end
 
@@ -61,6 +62,15 @@
     switch(eventCode) {
         case NSStreamEventOpenCompleted: {
             // TODO: stream opened, do stuff here if neccesary
+            if([stream isEqual:self.inputStream]){
+                self.inputStreamOpened = YES;
+            } else if([stream isEqual:self.outputStream]){
+                self.outputStreamOpened = YES;
+            }            
+            
+            if(self.inputStreamOpened && self.outputStreamOpened){
+                [[NSNotificationCenter defaultCenter] postNotificationName:kServerConnectedNotification object:self];
+            }
         } break;
             
         case NSStreamEventHasSpaceAvailable: {
@@ -100,6 +110,12 @@
         case NSStreamEventErrorOccurred:
         case NSStreamEventEndEncountered: {
             NSLog(@"Stream end encountered");
+            
+            if([stream isEqual:self.inputStream]){
+                self.inputStreamOpened = NO;
+            } else if([stream isEqual:self.outputStream]){
+                self.outputStreamOpened = NO;
+            }
             
             [self closeAllStreams];
             if(self.delegate && [self.delegate respondsToSelector:@selector(connectionDidClose:)]){

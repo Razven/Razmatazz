@@ -19,6 +19,9 @@
 #define kClientConnectedNotification @"ClientConnected"
 #define kClientDisconnectedNotification @"ClientDisconnected"
 
+#define kServerConnectedNotification @"ServerConnected"
+#define kServerDisconnectedNotification @"ServerDisconnected"
+
 
 
 #endif

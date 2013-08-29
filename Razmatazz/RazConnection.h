@@ -17,7 +17,8 @@
 
 @interface RazConnection : NSObject
 
-@property (nonatomic, strong) id<RazConnectionDelegate> delegate;
+@property (nonatomic, strong) id<RazConnectionDelegate>         delegate;
+@property (nonatomic, strong) NSString *                        connectionName;
 
 - (id) initWithInputStream:(NSInputStream*)inputStream andOutputStream:(NSOutputStream*)outputStream;
 

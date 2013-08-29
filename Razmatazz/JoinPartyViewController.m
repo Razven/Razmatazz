@@ -9,6 +9,10 @@
 #import "JoinPartyViewController.h"
 #import <QuartzCore/QuartzCore.h>
 #import "RazInfoPopupView.h"
+#import "RazConnection.h"
+#import "AppDelegate.h"
+#import "RazConnectionManager.h"
+#import "PartyRoomViewController.h"
 
 @interface JoinPartyViewController () < UITableViewDataSource, UITableViewDelegate, NSNetServiceBrowserDelegate >
 
@@ -37,9 +41,15 @@
         self.type = type;
         
         self.services = [NSMutableArray array];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(connectedToServer:) name:kServerConnectedNotification object:nil];
     }
     
     return self;
+}
+
+- (void) dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (void) viewWillLayoutSubviews {
@@ -72,10 +82,14 @@
 
 - (void) viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
+    
+    if(!self.browser){
+        [self start];
+    }
 }
 
-- (void) viewWillDisappear:(BOOL)animated {
-    [super viewWillDisappear:animated];
+- (void) viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
     
     [self stop];
 }
@@ -149,7 +163,9 @@
     // Find the service associated with the cell and start a connection to that.
     
     service = [self.services objectAtIndex:(NSUInteger) indexPath.row];    
-    [self showConnectViewForService:service];
+    [self showConnectViewForService:service withCompletionBlock:^{
+        [self connectToService:service];
+    }];   
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
@@ -183,6 +199,10 @@
 #pragma mark * Connection-in-progress UI management
 
 - (void)showConnectViewForService:(NSNetService *)service {    
+    [self showConnectViewForService:service withCompletionBlock:nil];
+}
+
+- (void) showConnectViewForService:(NSNetService*)service withCompletionBlock:(void(^)())completion {
     self.connectView.infoLabel.text = [NSString stringWithFormat:@"Connecting to %@", [service name]];
     [self.clientsConnectedTableView addSubview:self.connectView];
     
@@ -190,6 +210,9 @@
     
     [UIView animateWithDuration:0.3f animations:^{
         self.connectView.center = CGPointMake(self.connectView.center.x, self.view.center.y);
+        if(completion){
+            completion();
+        }
     }];
     
     self.clientsConnectedTableView.scrollEnabled = NO;
@@ -292,5 +315,43 @@
 - (void)netServiceBrowser:(NSNetServiceBrowser *)browser didNotSearch:(NSDictionary *)errorDict {
     NSLog(@"browser did not search.");
 }
+
+#pragma mark - Connect to server
+
+- (void) connectToService:(NSNetService *)service {
+    BOOL                success;
+    NSInputStream *     inStream;
+    NSOutputStream *    outStream;
+    
+    success = [service getInputStream:&inStream outputStream:&outStream];
+    if (!success) {
+        [self hideConnectViewAndShowConnectionDissapearedView];
+        
+        if(inStream){
+            [inStream close];
+        }
+        
+        if(outStream){
+            [outStream close];
+        }
+        
+        inStream = nil;
+        outStream = nil;
+        
+    } else {
+        RazConnection* connection = [[RazConnection alloc] initWithInputStream:inStream andOutputStream:outStream];
+        [connection setConnectionName:service.name];
+        [connection openAllStreams];
+        [[(AppDelegate*)[UIApplication sharedApplication].delegate sharedRazConnectionManager] setServerConnection:connection];
+    }
+}
+
+- (void) connectedToServer:(NSNotification*)notification {
+    [self hideConnectViewWithCompletionBlock:^{
+        PartyRoomViewController * prvc = [[PartyRoomViewController alloc] initWithPartyName:[(RazConnection*)notification.object connectionName]];
+        [self.navigationController pushViewController:prvc animated:YES];
+    }];
+}
+
 
 @end
