@@ -8,6 +8,7 @@
 
 #import "JoinPartyViewController.h"
 #import <QuartzCore/QuartzCore.h>
+#import "RazInfoPopupView.h"
 
 @interface JoinPartyViewController () < UITableViewDataSource, UITableViewDelegate, NSNetServiceBrowserDelegate >
 
@@ -15,8 +16,8 @@
 @property (nonatomic, strong)            NSMutableArray *       services;
 @property (nonatomic, strong, readwrite) NSNetServiceBrowser *  browser;
 
-@property (nonatomic, strong)            UIView *               connectView;
-@property (nonatomic, strong)            UILabel *              connectViewInfolabel;
+@property (nonatomic, strong)            RazInfoPopupView *     connectView;
+@property (nonatomic, strong)            RazInfoPopupView *     connectionDissapearedView;
 
 @end
 
@@ -30,12 +31,10 @@
         self.clientsConnectedTableView.delegate = self;
         self.clientsConnectedTableView.dataSource = self;
         
-        self.connectView = [[UIView alloc] init];
-        self.connectViewInfolabel = [[UILabel alloc] init];
+        self.connectView = [[RazInfoPopupView alloc] init];
+        self.connectionDissapearedView = [[RazInfoPopupView alloc] init];
     
         self.type = type;
-        
-        [self addObserver:self forKeyPath:@"localService" options:0 context:&self->_localService];
         
         self.services = [NSMutableArray array];
     }
@@ -53,38 +52,20 @@
     self.clientsConnectedTableView.layer.borderColor = [UIColor whiteColor].CGColor;
     
     [self.connectView setFrame:CGRectMake(0, self.view.frame.size.height, 200, 200)];
-    self.connectView.center = CGPointMake(self.view.center.x, self.connectView.center.y);
-    self.connectView.layer.cornerRadius = 3.0f;
-    self.connectView.layer.borderColor = [UIColor whiteColor].CGColor;
-    self.connectView.layer.borderWidth = 1.0f;
-    self.connectView.backgroundColor = [UIColor darkGrayColor];
-    self.connectView.clipsToBounds = YES;
+    [self.connectView setCenter:CGPointMake(self.view.center.x, self.connectView.center.y)];
+    [self.connectView.actionButton setTitle:@"Cancel" forState:UIControlStateNormal];
+    [self.connectView.actionButton setTitle:@"Cancel" forState:UIControlStateHighlighted];
+    [self.connectView.actionButton addTarget:self action:@selector(hideConnectView) forControlEvents:UIControlEventTouchUpInside];
+    [self.connectView.activityIndicator startAnimating];
     
-    [self.connectViewInfolabel setFrame:CGRectMake(0, 0, self.connectView.frame.size.width, 45)];
-    [self.connectViewInfolabel setNumberOfLines:0];
-    [self.connectViewInfolabel setBackgroundColor:[UIColor clearColor]];
-    self.connectViewInfolabel.textColor = [UIColor whiteColor];
-    self.connectViewInfolabel.backgroundColor = [UIColor lightGrayColor];
-    self.connectViewInfolabel.textAlignment = NSTextAlignmentCenter;
+    [self.connectionDissapearedView setFrame:CGRectMake(0, self.view.frame.size.height, 200, 200)];
+    [self.connectionDissapearedView setCenter:CGPointMake(self.view.center.x, self.connectionDissapearedView.center.y)];
     
-    UIButton *cancelConnectionButton = [[UIButton alloc] initWithFrame:CGRectMake(0, self.connectView.frame.size.height - 80, 70, 30)];
-    cancelConnectionButton.center = CGPointMake(CGRectGetMidX(self.connectView.bounds), cancelConnectionButton.center.y);
-    [cancelConnectionButton setTitle:@"Cancel" forState:UIControlStateNormal];
-    [cancelConnectionButton setTitle:@"Cancel" forState:UIControlStateHighlighted];
-    cancelConnectionButton.layer.cornerRadius = 3.0f;
-    cancelConnectionButton.layer.borderWidth = 1.0f;
-    cancelConnectionButton.layer.borderColor = [UIColor whiteColor].CGColor;
-    cancelConnectionButton.backgroundColor = [UIColor lightGrayColor];
+    self.connectionDissapearedView.infoLabel.text = @"The connection was lost, please try again or join a different party";
+    [self.connectionDissapearedView.actionButton setTitle:@"Okay" forState:UIControlStateNormal];
+    [self.connectionDissapearedView.actionButton setTitle:@"Okay" forState:UIControlStateHighlighted];
     
-    UIActivityIndicatorView * spinnerView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
-    spinnerView.center = CGPointMake(CGRectGetMidX(self.connectView.bounds), CGRectGetMidY(self.connectView.bounds) - 17);
-    [spinnerView startAnimating];
-    
-    [cancelConnectionButton addTarget:self action:@selector(cancelConnectingButtonPressed) forControlEvents:UIControlEventTouchUpInside];
-    
-    [self.connectView addSubview:self.connectViewInfolabel];
-    [self.connectView addSubview:cancelConnectionButton];
-    [self.connectView addSubview:spinnerView];
+    [self.connectionDissapearedView.actionButton addTarget:self action:@selector(hideConnectionDissapearedView) forControlEvents:UIControlEventTouchUpInside];
     
     self.view.backgroundColor = [UIColor darkGrayColor];
 }
@@ -117,10 +98,6 @@
     [super didReceiveMemoryWarning];
 }
 
-- (void) dealloc {
-    [self removeObserver:self forKeyPath:@"localService" context:&self->_localService];
-}
-
 - (void)start {    
     self.browser = [[NSNetServiceBrowser alloc] init];
     [self.browser setDelegate:self];
@@ -135,26 +112,6 @@
     
     if (self.isViewLoaded) {
         [self.clientsConnectedTableView reloadData];
-    }
-}
-
-#pragma mark - ObserveValueForKeyPath
-
-- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
-{
-    if (context == &self->_localService) {        
-        // There's a chance that the browser saw our service before we heard about its successful
-        // registration, at which point we need to hide the service.  Doing that would be easy,
-        // but there are other edge cases to consider (for example, if the local service changes
-        // name, we would have to unhide the old name and hide the new name).  Rather than attempt
-        // to handle all of those edge cases we just stop and restart when the service name changes.
-        
-        if (self.browser != nil) {
-            [self stop];
-            [self start];
-        }
-    } else {
-        [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
     }
 }
 
@@ -179,6 +136,8 @@
     
     cell.selectedBackgroundView = cellSelectedBackgroundView;
     
+    cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+    
     return cell;
 }
 
@@ -189,7 +148,7 @@
     
     // Find the service associated with the cell and start a connection to that.
     
-    service = [self.services objectAtIndex:(NSUInteger) indexPath.row];
+    service = [self.services objectAtIndex:(NSUInteger) indexPath.row];    
     [self showConnectViewForService:service];
 }
 
@@ -224,7 +183,7 @@
 #pragma mark * Connection-in-progress UI management
 
 - (void)showConnectViewForService:(NSNetService *)service {    
-    self.connectViewInfolabel.text = [NSString stringWithFormat:@"Connecting to %@", [service name]];
+    self.connectView.infoLabel.text = [NSString stringWithFormat:@"Connecting to %@", [service name]];
     [self.clientsConnectedTableView addSubview:self.connectView];
     
     [self.navigationItem setHidesBackButton:YES animated:YES];
@@ -235,15 +194,52 @@
     
     self.clientsConnectedTableView.scrollEnabled = NO;
     self.clientsConnectedTableView.allowsSelection = NO;
+    
+    self.connectingToService = service;
 }
 
-- (void)hideConnectView {
-    if (self.connectView.superview != nil) {
-        
+- (void) showConnectionDissapearedView {
+    [self.clientsConnectedTableView addSubview:self.connectionDissapearedView];
+    [UIView animateWithDuration:0.3f animations:^{
+        self.connectionDissapearedView.center = CGPointMake(self.connectView.center.x, self.view.center.y);
+    }];
+}
+
+- (void) hideConnectView {
+    [self hideConnectViewWithCompletionBlock:nil];
+}
+
+- (void)hideConnectViewWithCompletionBlock:(void (^)())completion {
+    if (self.connectView.superview != nil) {        
         [UIView animateWithDuration:0.3f animations:^{
             self.connectView.frame = CGRectMake(self.connectView.frame.origin.x, self.view.frame.size.height, self.connectView.frame.size.width, self.connectView.frame.size.height);
         } completion:^(BOOL finished) {
             [self.connectView removeFromSuperview];
+            [self.navigationItem setHidesBackButton:NO animated:YES];
+            if(completion){
+                completion();
+            }
+        }];
+        
+        self.clientsConnectedTableView.scrollEnabled = YES;
+        self.clientsConnectedTableView.allowsSelection = YES;
+        
+        self.connectingToService = nil;
+    }
+}
+
+- (void) hideConnectViewAndShowConnectionDissapearedView {
+    [self hideConnectViewWithCompletionBlock:^{
+        [self showConnectionDissapearedView];
+    }];
+}
+
+- (void) hideConnectionDissapearedView {
+    if(self.connectionDissapearedView.superview != nil){
+        [UIView animateWithDuration:0.3f animations:^{
+            self.connectionDissapearedView.frame = CGRectMake(self.connectView.frame.origin.x, self.view.frame.size.height, self.connectView.frame.size.width, self.connectView.frame.size.height);
+        } completion:^(BOOL finished) {
+            [self.connectionDissapearedView removeFromSuperview];
             [self.navigationItem setHidesBackButton:NO animated:YES];
         }];
         
@@ -271,20 +267,22 @@
     }
 }
 
-- (void)netServiceBrowser:(NSNetServiceBrowser *)browser didRemoveService:(NSNetService *)service moreComing:(BOOL)moreComing {    
-    if ((self.localService == nil) || ![self.localService isEqual:service]) {
-        [self.services removeObject:service];
+- (void)netServiceBrowser:(NSNetServiceBrowser *)browser didRemoveService:(NSNetService *)service moreComing:(BOOL)moreComing {
+    // the service we're connecting to has gone missing from the network
+    
+    if(self.connectingToService != nil && [self.connectingToService isEqual:service]){
+        [self hideConnectViewAndShowConnectionDissapearedView];
     }
+    
+    [self.services removeObject:service];
     
     if (!moreComing) {
         [self sortAndReloadTable];
     }
 }
 
-- (void)netServiceBrowser:(NSNetServiceBrowser *)browser didFindService:(NSNetService *)service moreComing:(BOOL)moreComing {
-    if ((self.localService == nil) || ! [self.localService isEqual:service]) {
-        [self.services addObject:service];
-    }
+- (void)netServiceBrowser:(NSNetServiceBrowser *)browser didFindService:(NSNetService *)service moreComing:(BOOL)moreComing {    
+    [self.services addObject:service];
     
     if (!moreComing) {
         [self sortAndReloadTable];
