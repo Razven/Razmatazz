@@ -128,7 +128,7 @@
 #pragma mark - UITextField delegate
 
 -(BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
-    return (range.location < 10);
+    return (range.location < 15);
 }
 
 @end
