@@ -31,6 +31,8 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
+    
+    [self setupTitle];
 }
 
 - (void) viewDidAppear:(BOOL)animated {

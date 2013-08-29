@@ -9,11 +9,13 @@
 #import "PartyRoomViewController.h"
 #import "RazConnectionManager.h"
 #import "AppDelegate.h"
+#import "RazInfoPopupView.h"
 
 @interface PartyRoomViewController () < UIAlertViewDelegate >
 
 @property (nonatomic, strong) NSString *                    partyName;
 @property (nonatomic, weak) RazConnectionManager *          connectionManager;
+@property (nonatomic, strong) RazInfoPopupView *            serverDisconnectedView;
 
 @end
 
@@ -25,9 +27,25 @@
     if(self){
         self.partyName = partyName;
         self.connectionManager = [(AppDelegate*)[UIApplication sharedApplication].delegate sharedRazConnectionManager];
+        self.serverDisconnectedView = [[RazInfoPopupView alloc] init];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(serverDisconnected:) name:kServerDisconnectedNotification object:nil];
     }
     
     return self;
+}
+
+- (void) viewWillLayoutSubviews {
+    [super viewWillLayoutSubviews];
+    
+    [self.serverDisconnectedView setFrame:CGRectMake(0, self.view.frame.size.height, 200, 200)];
+    [self.serverDisconnectedView setCenter:CGPointMake(self.view.center.x, self.view.center.y)];
+    
+    self.serverDisconnectedView.infoLabel.text = @"The server has disconnected, please try again or join a different party";
+    [self.serverDisconnectedView.actionButton setTitle:@"Okay" forState:UIControlStateNormal];
+    [self.serverDisconnectedView.actionButton setTitle:@"Okay" forState:UIControlStateHighlighted];
+    
+    [self.serverDisconnectedView.actionButton addTarget:self action:@selector(hideServerDisconnectedView) forControlEvents:UIControlEventTouchUpInside];
 }
 
 - (void) viewWillAppear:(BOOL)animated {
@@ -56,6 +74,29 @@
     [confirmExit show];
 }
 
+- (void) showServerDisconnectedView {
+    [self.view addSubview:self.serverDisconnectedView];
+    [UIView animateWithDuration:0.3f animations:^{
+        self.serverDisconnectedView.center = CGPointMake(self.view.center.x, self.view.center.y);
+    }];
+}
+
+- (void) hideServerDisconnectedView {
+    // just in case
+    [UIView animateWithDuration:0.3f animations:^{
+        self.serverDisconnectedView.frame = CGRectMake(self.serverDisconnectedView.frame.origin.x, self.view.frame.size.height, self.serverDisconnectedView.frame.size.width, self.serverDisconnectedView.frame.size.height);
+    } completion:^(BOOL finished) {
+        [self.serverDisconnectedView removeFromSuperview];;
+    }];
+    
+    [self.connectionManager closePartyServerStream];
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+- (void) dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
 #pragma mark - UIAlertView delegate
 
 -(void)alertView:(UIAlertView *)alertView willDismissWithButtonIndex:(NSInteger)buttonIndex {
@@ -65,6 +106,12 @@
         [self.connectionManager closePartyServerStream];
         [self.navigationController popViewControllerAnimated:YES];
     }
+}
+
+#pragma mark - NSNotificationCenter
+
+- (void)serverDisconnected:(NSNotification*)notification {
+    [self showServerDisconnectedView];
 }
 
 @end

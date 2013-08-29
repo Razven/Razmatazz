@@ -29,6 +29,8 @@
         [self.server setDelegate:self];
         
         self.connectionsArray = [NSMutableArray array];
+        
+        self.serverConnection = nil;
     }
     
     return self;
@@ -88,9 +90,9 @@
     }
 }
 
-- (void) setServerConnection:(id)serverConnection {
-    [self.serverConnection setDelegate:self];
+- (void) setServerConnection:(id)serverConnection {    
     _serverConnection = serverConnection;
+    [self.serverConnection setDelegate:self];
 }
 
 #pragma mark - Stream management
@@ -150,8 +152,8 @@
 
 - (void)connectionDidClose:(id)connection {
     if(self.serverConnection && [connection isEqual:self.serverConnection]){
-        self.serverConnection = nil;
         [[NSNotificationCenter defaultCenter] postNotificationName:kServerDisconnectedNotification object:connection];
+//        self.serverConnection = nil;
     } else {
         [self.connectionsArray removeObject:connection];
         [[NSNotificationCenter defaultCenter] postNotificationName:kClientDisconnectedNotification object:connection];

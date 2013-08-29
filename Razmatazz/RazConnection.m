@@ -58,6 +58,8 @@
     }
 }
 
+#pragma mark - NSStream delegate
+
 - (void)stream:(NSStream *)stream handleEvent:(NSStreamEvent)eventCode {
     switch(eventCode) {
         case NSStreamEventOpenCompleted: {
@@ -69,6 +71,7 @@
             }            
             
             if(self.inputStreamOpened && self.outputStreamOpened){
+                NSLog(@"New connection!");
                 [[NSNotificationCenter defaultCenter] postNotificationName:kServerConnectedNotification object:self];
             }
         } break;
@@ -96,7 +99,7 @@
                 
                 //                if ((b >= 'A') && (b < ('A' + kTapViewControllerTapItemCount))) {
                 //                    [self.tapViewController remoteTouchDownOnItem:b - 'A'];
-                //                } else if ( (b >= 'a') && (b < ('a' + kTapViewControllerTapItemCount))) {
+                //                } else if ( (b >= 'a') && (b < ('a' + kTapViewControllerTapItemCount))) {
                 //                    [self.tapViewController remoteTouchUpOnItem:b - 'a'];
                 //                } else {
                 //                    // Ignore the bogus input.  This is important because it allows us
@@ -107,7 +110,9 @@
         } break;
             
         default:
-        case NSStreamEventErrorOccurred:
+        case NSStreamEventErrorOccurred: {
+            NSLog(@"Error occured connecting");
+        } break;
         case NSStreamEventEndEncountered: {
             NSLog(@"Stream end encountered");
             

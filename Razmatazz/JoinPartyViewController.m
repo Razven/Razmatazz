@@ -23,6 +23,8 @@
 @property (nonatomic, strong)            RazInfoPopupView *     connectView;
 @property (nonatomic, strong)            RazInfoPopupView *     connectionDissapearedView;
 
+@property (nonatomic, strong)            UILabel *              noPartiesAvailableLabel;
+
 @end
 
 @implementation JoinPartyViewController
@@ -37,6 +39,7 @@
         
         self.connectView = [[RazInfoPopupView alloc] init];
         self.connectionDissapearedView = [[RazInfoPopupView alloc] init];
+        self.noPartiesAvailableLabel = [[UILabel alloc] init];
     
         self.type = type;
         
@@ -76,6 +79,13 @@
     [self.connectionDissapearedView.actionButton setTitle:@"Okay" forState:UIControlStateHighlighted];
     
     [self.connectionDissapearedView.actionButton addTarget:self action:@selector(hideConnectionDissapearedView) forControlEvents:UIControlEventTouchUpInside];
+    
+    self.noPartiesAvailableLabel.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
+    self.noPartiesAvailableLabel.center = self.clientsConnectedTableView.center;
+    self.noPartiesAvailableLabel.textAlignment = NSTextAlignmentCenter;
+    self.noPartiesAvailableLabel.backgroundColor = [UIColor clearColor];
+    [self.noPartiesAvailableLabel setText:@"No parties found"];
+    self.noPartiesAvailableLabel.textColor = [UIColor whiteColor];
     
     self.view.backgroundColor = [UIColor darkGrayColor];
 }
@@ -173,6 +183,13 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    int numOfConnections = [self.services count];
+    
+    if(numOfConnections == 0){
+        [self.clientsConnectedTableView addSubview:self.noPartiesAvailableLabel];
+    } else {
+        [self.noPartiesAvailableLabel removeFromSuperview];
+    }
     return [self.services count];
 }
 
@@ -219,6 +236,8 @@
     self.clientsConnectedTableView.allowsSelection = NO;
     
     self.connectingToService = service;
+    
+    [NSTimer scheduledTimerWithTimeInterval:30 target:self selector:@selector(connectionTimedOut) userInfo:nil repeats:NO];
 }
 
 - (void) showConnectionDissapearedView {
@@ -269,6 +288,14 @@
         self.clientsConnectedTableView.scrollEnabled = YES;
         self.clientsConnectedTableView.allowsSelection = YES;
     }
+}
+
+- (void) connectionTimedOut {
+    if(self.connectingToService){
+        [self hideConnectViewAndShowConnectionDissapearedView];
+    }
+    
+    self.connectingToService = nil;
 }
 
 - (void)cancelConnectingButtonPressed {
