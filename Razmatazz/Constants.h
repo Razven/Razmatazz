@@ -22,6 +22,8 @@
 #define kServerConnectedNotification @"ServerConnected"
 #define kServerDisconnectedNotification @"ServerDisconnected"
 
+#define kSocketMessageStartDelimiter @"razmatazz1597534862"
+#define kSocketMessageEndDelimiter @"7539512684razmatazz"
 
 
 #endif

@@ -217,7 +217,12 @@
     [exporter exportAsynchronouslyWithCompletionHandler:^{        	
         [self updateStatus:@"song exported"];        
         NSLog(@"Successfully exported %@ to %@", songTitle, exportURL);
+        [self sendSongToClientsFromURL:exportURL];
     }];
+}
+
+- (void) sendSongToClientsFromURL:(NSURL*)songPath {
+    [self.razConnectionManager broadcastSongFromURL:songPath];
 }
 
 #pragma mark - BarButtonItem selectors

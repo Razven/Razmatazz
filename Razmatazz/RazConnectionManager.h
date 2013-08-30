@@ -21,6 +21,8 @@
 
 - (void) closePartyServerStream;
 
+- (void) broadcastSongFromURL:(NSURL*)songPath;
+
 - (void) setServerConnection:(RazConnection*)serverConnection;
 
 - (void) registerServerWithName:(NSString*)name;

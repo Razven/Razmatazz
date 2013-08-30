@@ -25,4 +25,6 @@
 - (void) closeAllStreams;
 - (void) openAllStreams;
 
+- (void) sendData:(NSData*)songData;
+
 @end

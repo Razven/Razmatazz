@@ -14,6 +14,12 @@
 @property (nonatomic, strong, readwrite) NSOutputStream *       outputStream;
 
 @property (nonatomic, assign) BOOL                              inputStreamOpened, outputStreamOpened;
+@property (nonatomic, assign) BOOL                              hasSentName;
+
+@property (nonatomic, strong) NSMutableData *                   inputData;
+@property (nonatomic, strong) NSMutableData *                   outputData;
+@property (nonatomic, assign) NSUInteger                        readBytes;
+@property (nonatomic, assign) NSUInteger                        byteIndex;
 
 @end
 
@@ -25,6 +31,8 @@
     if(self){
         self.inputStream = inputStream;
         self.outputStream = outputStream;
+        self.inputData = [NSMutableData data];
+        self.hasSentName = NO;
     }
     
     return self;
@@ -71,20 +79,35 @@
             }            
             
             if(self.inputStreamOpened && self.outputStreamOpened){
-                NSLog(@"New connection!");
+                NSLog(@"New connection!");       
                 [[NSNotificationCenter defaultCenter] postNotificationName:kServerConnectedNotification object:self];
             }
         } break;
             
         case NSStreamEventHasSpaceAvailable: {
-            // do nothing
+            if(!self.hasSentName){
+                [self sendName];
+                break;
+            }
+            if(self.outputData){
+                uint8_t *readBytes = (uint8_t *)[self.outputData mutableBytes];
+                readBytes += self.byteIndex; // instance variable to move pointer
+                int data_len = [self.outputData length];
+                unsigned int len = ((data_len - self.byteIndex >= 1024) ?
+                                    1024 : (data_len - self.byteIndex));
+                uint8_t buf[len];
+                (void)memcpy(buf, readBytes, len);
+                len = [self.outputStream write:(const uint8_t *)buf maxLength:len];
+                self.byteIndex += len;
+                if(self.byteIndex == data_len){
+                    self.outputData = nil;
+                }
+            }            
         } break;
             
         case NSStreamEventHasBytesAvailable: {
-            uint8_t     b[4];
+            uint8_t     b[1024];
             NSInteger   bytesRead;
-            
-            assert(stream == self.inputStream);
             
             bytesRead = [self.inputStream read:b maxLength:sizeof(b)];
             if (bytesRead <= 0) {
@@ -92,26 +115,32 @@
                 // NSStreamEventEndEncountered and NSStreamEventErrorOccurred case,
                 // respectively.
             } else {
-                NSLog(@"Message received:%s", b);
-                [self send:b];
-                // We received a remote tap update, forward it to the appropriate view
-                //TODO: interpret the message we received in our 'b' buffer.
+                [self.inputData appendBytes:b length:bytesRead];
                 
-                //                if ((b >= 'A') && (b < ('A' + kTapViewControllerTapItemCount))) {
-                //                    [self.tapViewController remoteTouchDownOnItem:b - 'A'];
-                //                } else if ( (b >= 'a') && (b < ('a' + kTapViewControllerTapItemCount))) {
-                //                    [self.tapViewController remoteTouchUpOnItem:b - 'a'];
-                //                } else {
-                //                    // Ignore the bogus input.  This is important because it allows us
-                //                    // to telnet in to the app in order to test its behaviour.  telnet
-                //                    // sends all sorts of odd characters, so ignoring them is a good thing.
-                //                }
+                NSUInteger indexOfEnd = [self indexOfDelimiter:[kSocketMessageEndDelimiter dataUsingEncoding:NSUTF8StringEncoding] inData:self.inputData];
+                
+                //we reached the end of the message
+                if(indexOfEnd != NSNotFound){
+                    // TODO: do something with the data now that we have it all
+                    NSLog(@"Finished reading data");
+                }
+                
+                //                else {
+                //                        NSUInteger indexOfStart = [self indexOfDelimiter:[kSocketMessageStartDelimiter dataUsingEncoding:NSUTF8StringEncoding] inData:[NSData dataWithBytes:b length:bytesRead]];
+//                    
+//                    // we found the start delimiter, start appending data to our array
+//                    if(indexOfStart != NSNotFound){
+//                        self.inputData = [NSMutableData data];
+//                        [self.inputData appendBytes:&b[indexOfStart + kSocketMessageStartDelimiter.length] length:bytesRead - indexOfStart];
+//                    }
+//                }
+                NSLog(@"Read %lu bytes of data", (unsigned long)[self.inputData length]);
             }
         } break;
             
         default:
         case NSStreamEventErrorOccurred: {
-            NSLog(@"Error occured connecting");
+            NSLog(@"Error occured connecting: %@", [stream streamError]);
         } break;
         case NSStreamEventEndEncountered: {
             NSLog(@"Stream end encountered");
@@ -130,7 +159,73 @@
     }
 }
 
-- (void)send:(uint8_t*)message
+- (NSUInteger)indexOfDelimiter:(NSData*)delimiter inData:(NSData*)data
+{
+    const char* delimiterBytes = [delimiter bytes];
+    const char* dataBytes = [data bytes];
+    
+    if([data length] < [delimiter length]){
+        return NSNotFound;
+    }
+    
+    // walk the length of the buffer, looking for a byte that matches the start
+    // of the pattern; we can skip (|needle|-1) bytes at the end, since we can't
+    // have a match that's shorter than needle itself
+    for (int i = 0; i < [data length] - [delimiter length] + 1; i++) {
+        // walk needle's bytes while they still match the bytes of haystack
+        // starting at i; if we walk off the end of needle, we found a match
+        int j = 0;
+        while (j < [delimiter length] && delimiterBytes[j] == dataBytes[i + j]) {
+            j++;
+        }
+        if (j == [delimiter length]) {
+            return i;
+        }
+    }
+    return NSNotFound;
+}
+
+//- (void)sendFile:(NSMutableData*)data {
+//    uint8_t *readBytes = (uint8_t *)[data mutableBytes];
+//    uint8_t buf[1024];
+//    int len = 1024;
+//    NSInteger * bytesWritten;
+//    
+//    while (YES) {
+//        if (len == 0) {
+//            break;
+//        }
+//        if ( [self.outputStream hasSpaceAvailable] ) {
+//            (void)strncpy(buf, readBytes, len);
+//            readBytes += len;
+//            if ([self.outputStream write:(const uint8_t *)buf maxLength:len] == -1) {
+//                [self handleError:[self.outputStream streamError]];
+//                break;
+//            }
+//            [bytesWritten setIntValue:[bytesWritten intValue]+len];
+//            len = (([data length] - [bytesWritten intValue] >= 1024) ? 1024 :
+//                   [data length] - [bytesWritten intValue]);
+//        }
+//    }
+//    NSData *newData = [self.outputStream propertyForKey:
+//                       NSStreamDataWrittenToMemoryStreamKey];
+//    if (!newData) {
+//        NSLog(@"No data written to memory!");
+//    } else {
+////        [self processData:newData];
+//    }
+//}
+
+- (void) sendData:(NSData *)data {
+    self.outputData = [data mutableCopy];
+    
+    if([self.outputStream hasSpaceAvailable]){
+        [self stream:self.outputStream handleEvent:NSStreamEventHasSpaceAvailable];
+        NSLog(@"sending %lu bytes of data to %@", (unsigned long)[self.outputData length], self.connectionName);
+    }
+}
+
+- (void)sendMessage:(uint8_t*)message
 {
     // Only write to the stream if it has space available, otherwise we might block.
     // In a real app you have to handle this case properly but in this sample code it's
@@ -142,14 +237,26 @@
         return;
     }
     
-    if ( [self.outputStream hasSpaceAvailable] ) {
-        NSInteger   bytesWritten;
-        
-        bytesWritten = [self.outputStream write:message maxLength:sizeof(message)];
-        if (bytesWritten != sizeof(message)) {
-            // TODO: didn't manage to send the whole message
-        }
+    NSInteger   bytesWritten = 0;
+    
+    while(bytesWritten < sizeof(message) && [self.outputStream hasSpaceAvailable]) {
+        bytesWritten += [self.outputStream write:&message[bytesWritten] maxLength:(sizeof(message) - bytesWritten)];
     }
+    
+    NSLog(@"sent %ld bytes of name message", (long)bytesWritten);
+    
+    self.hasSentName = YES;
+}
+
+- (void) sendName {
+    //TODO: send actual name of client once we have a way for them to enter their name
+    NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@", kSocketMessageStartDelimiter, @"name:raz", kSocketMessageEndDelimiter];
+    
+    NSData *someData = [msgToSend dataUsingEncoding:NSUTF8StringEncoding];
+    const void *bytes = [someData bytes];
+    uint8_t *crypto_data = (uint8_t*)bytes;
+    
+    [self sendMessage:crypto_data];
 }
 
 @end

@@ -95,6 +95,17 @@
     [self.serverConnection setDelegate:self];
 }
 
+- (void) broadcastSongFromURL:(NSURL *)songPath {
+    NSString *  path = [songPath path];
+    NSData *    data = [[NSFileManager defaultManager] contentsAtPath:path];
+    
+    if(data && [data length] > 0){
+        for(RazConnection * client in self.connectionsArray){
+            [client sendData:data];
+        }
+    }    
+}
+
 #pragma mark - Stream management
 
 - (void)openClientStreams
