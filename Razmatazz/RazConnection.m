@@ -146,6 +146,8 @@
         case NSStreamEventEndEncountered: {
             NSLog(@"Stream end encountered");
             
+            //TODO: this only gets called once. Take care of our variables somehow
+            
             if([stream isEqual:self.inputStream]){
                 self.inputStreamOpened = NO;
             } else if([stream isEqual:self.outputStream]){
@@ -285,12 +287,12 @@
 
 - (void) sendNickNameCommand {
     NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@", kSocketMessageStartDelimiter, kCommandClientNickName, kCommandDelimiter, [[NSUserDefaults standardUserDefaults] valueForKey:kUserDefaultsClientNickName], kSocketMessageEndDelimiter];
-    [self sendCommandWithString:msgToSend];
+    self.hasSentName = [self sendCommandWithString:msgToSend];
 }
 
 - (void) sendFileMetaDataCommandWithFileName:(NSString*)fileName andFileSize:(NSInteger)fileSize {
     NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@%@%ld%@", kSocketMessageStartDelimiter, kCommandFileName, kCommandDelimiter, fileName, kCommandFileSize, kCommandDelimiter, (long)fileSize, kSocketMessageEndDelimiter];
-    self.hasSentName = [self sendCommandWithString:msgToSend];
+    [self sendCommandWithString:msgToSend];
 }
 
 //- (void)sendUnfinishedNickName {
