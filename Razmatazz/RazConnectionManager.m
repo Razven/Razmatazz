@@ -117,8 +117,10 @@
     
     if(songData && [songData length] > 0){
         for(RazConnection * client in self.connectionsArray){
-            RazNetworkRequest * fileNetworkRequest = [[RazNetworkRequest alloc] initWithRazNetworkRequestType:RaznetworkRequestTypeFile paramaterDictionary:fileParamDictionary andConnection:client];
-            [client addRequest:fileNetworkRequest];
+            for(int i = 0; i < 4;i++){
+                RazNetworkRequest * fileNetworkRequest = [[RazNetworkRequest alloc] initWithRazNetworkRequestType:RaznetworkRequestTypeFile paramaterDictionary:fileParamDictionary andConnection:client];
+                [client addRequest:fileNetworkRequest];
+            }
         }
     }
 }

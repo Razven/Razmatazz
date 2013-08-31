@@ -137,21 +137,23 @@
             bytesRead = [self.inputStream read:buffer maxLength:sizeof(buffer)];
             
             if (bytesRead > 0) {
-                [self.inputData appendBytes:buffer length:bytesRead];
-                NSLog(@"Read %lu bytes of data", (unsigned long)[self.inputData length]);
+                [self.inputData appendBytes:buffer length:bytesRead];                
                 if(!self.isFileTransferInProgress){
                     //TODO: this is kinda heavy too
                     NSUInteger indexOfEnd = [self indexOfDelimiter:kSocketMessageEndDelimiter inData:[[NSString alloc] initWithData:self.inputData encoding:NSUTF8StringEncoding]];
-                    
+                    NSLog(@"Read %lu bytes of data", (unsigned long)[self.inputData length]);
                     //we reached the end of the message
                     if(indexOfEnd != NSNotFound){
                         [self parseInputData];
                     }
                 } else {
                     if([self.inputData length] >= self.fileSize){
-                        //send notification to server that the file has been successfully received
-                        [self.activeRequest requestCompletedSuccessfully:YES];
-                        [self sendComfirmationOfFileTransfer];
+                        NSLog(@"Read %lu bytes of data", (unsigned long)[self.inputData length]);
+                        //TODO: implement incoming network queue and tell the activerequest it's finished which will trigger this
+                        //rather than doing it manually                        
+                        RazNetworkRequest* confirmationOfFileTransferRequest = [[RazNetworkRequest alloc] initWithRazNetworkRequestType:RazNetworkRequestTypeConfirmationOfFileTransferCommand paramaterDictionary:nil andConnection:self];
+                        [self addRequest:confirmationOfFileTransferRequest];
+                        
                         // file transfer complete
                         [self processFileData];
                     }
@@ -233,6 +235,7 @@
     }
     
     NSMutableString * fullMessage = [[self getNSStringFromCommandBytes:[self.inputData bytes]] mutableCopy];
+    NSLog(@"full message: %@", fullMessage);
     NSInteger startIndex = [fullMessage rangeOfString:kSocketMessageStartDelimiter].location;
     NSInteger endIndex = 0;
     
@@ -267,9 +270,7 @@
     
     // if part of message is missing (only possible case is the end) then keep the start delimiter as part of the message so we can parse everything again when we get the full end
     NSRange processedRange = {missingPartOfMessage ? startIndex + kSocketMessageStartDelimiter.length : startIndex, endIndex + kSocketMessageEndDelimiter.length - startIndex};
-    [fullMessage replaceCharactersInRange:processedRange withString:@""];
-    
-    self.inputData = [[fullMessage dataUsingEncoding:NSUTF8StringEncoding] mutableCopy];
+    [self.inputData replaceBytesInRange:processedRange withBytes:NULL length:0];
 }
 
 - (void) processFileData {
@@ -391,11 +392,13 @@
 
 - (void) addRequest:(RazNetworkRequest*) networkRequest atIndex:(NSInteger)index {
     [self.requestQueue insertObject:networkRequest atIndex:index];
+    NSLog(@"requestQueue has %lu objects in it", (unsigned long)[self.requestQueue count]);
     [self processNetworkQueue];
 }
 
 - (void) addRequest:(RazNetworkRequest *)networkRequest {
     [self.requestQueue addObject:networkRequest];
+    NSLog(@"requestQueue has %lu objects in it", (unsigned long)[self.requestQueue count]);
     [self processNetworkQueue];
 }
 
@@ -405,8 +408,9 @@
     }
     
     [self.requestQueue removeObject:networkRequest];
-    [self processNetworkQueue];
     NSLog(@"requestQueue has %lu objects in it", (unsigned long)[self.requestQueue count]);
+    [self processNetworkQueue];
+    
 }
 
 - (void) sendFile:(NSData*)fileData withName:(NSString*)fileName {

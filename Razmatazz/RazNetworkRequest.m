@@ -61,19 +61,24 @@
 - (void) requestSucceeded {
     switch (self.requestType){
         case RazNetworkRequestTypeNickNameCommand: {
-            [self.connection removeRequest:self];
+            NSLog(@"successfully sent nickname command");
+            [self.connection removeRequest:self];            
         } break;
         case RaznetworkRequestTypeFile: {
-            [self.connection removeRequest:self];
+            NSLog(@"successfuly converted file request to metadata and data requests");
+            [self.connection removeRequest:self];            
         } break;
         case RazNetworkRequestTypeFileMetaDataCommand: {
-            [self.connection removeRequest:self];
+            NSLog(@"successfully sent file metadata command");
+            [self.connection removeRequest:self];            
         } break;
         case RazNetworkRequestTypeFileData: {
-            [self.connection removeRequest:self];
+            NSLog(@"successfully sent file data");
+            [self.connection removeRequest:self];            
         } break;
         case RazNetworkRequestTypeConfirmationOfFileTransferCommand: {
-            [self.connection removeRequest:self];
+            NSLog(@"successfully sent confirmation of file transfer command");
+            [self.connection removeRequest:self];            
         } break;
         default: {
             NSLog(@"unknown request type succeeded");
@@ -82,7 +87,26 @@
 }
 
 - (void) requestFailed {
-    
+    switch (self.requestType){
+        case RazNetworkRequestTypeNickNameCommand: {
+            
+        } break;
+        case RaznetworkRequestTypeFile: {
+            
+        } break;
+        case RazNetworkRequestTypeFileMetaDataCommand: {
+            
+        } break;
+        case RazNetworkRequestTypeFileData: {
+            
+        } break;
+        case RazNetworkRequestTypeConfirmationOfFileTransferCommand: {
+            
+        } break;
+        default: {
+            NSLog(@"unknown request type succeeded");
+        } break;
+    }
 }
 
 @end
