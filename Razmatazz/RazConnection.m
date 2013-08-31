@@ -170,10 +170,12 @@
             [[NSNotificationCenter defaultCenter] postNotificationName:kClientRegisteredNotification object:self];
         } else if ([command isEqualToString:kCommandFileName]){ //file name was sent through in preparation for a file to be sent
             self.fileName = [commands objectAtIndex:i + 1];
+            NSLog(@"received file name command: %@", self.fileName);
         } else if([command isEqualToString:kCommandFileSize]){ //file size was sent through in preparation for a file to be sent
             NSNumberFormatter * formatter = [[NSNumberFormatter alloc] init];
             [formatter setNumberStyle:NSNumberFormatterDecimalStyle];
             self.fileSize = [formatter numberFromString:[commands objectAtIndex:i + 1]].integerValue;
+            NSLog(@"received file size command: %ld", (long)self.fileSize);
         } else {
             NSLog(@"Unrecognized command: %@", command);
         }
@@ -255,7 +257,7 @@
     
     if([self.outputStream hasSpaceAvailable]){
         [self stream:self.outputStream handleEvent:NSStreamEventHasSpaceAvailable];
-        NSLog(@"sending %lu bytes of data to %@", (unsigned long)[self.outputData length], self.connectionName ? self.connectionName : @"unregistered client");
+        NSLog(@"sending %lu bytes to %@", (unsigned long)[self.outputData length], self.connectionName ? self.connectionName : @"unregistered client");
     } else {
         //TODO: handle case where output stream doesn't have available space
     }
@@ -273,7 +275,7 @@
         bytesWritten += [self.outputStream write:&message[bytesWritten] maxLength:(length - bytesWritten)];
     }
     
-    NSLog(@"sent %ld bytes of name message", (long)bytesWritten);
+    NSLog(@"sent a %ld byte long message", (long)bytesWritten);
     return YES;
 }
 
