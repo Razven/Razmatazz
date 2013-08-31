@@ -7,6 +7,7 @@
 //
 
 #import "RazConnection.h"
+#import "RazNetworkRequest.h"
 
 @interface RazConnection() <NSStreamDelegate>
 
@@ -14,7 +15,6 @@
 @property (nonatomic, strong, readwrite) NSOutputStream *       outputStream;
 
 @property (nonatomic, assign) BOOL                              inputStreamOpened, outputStreamOpened;
-@property (nonatomic, assign) BOOL                              hasSentName;
 @property (nonatomic, assign) BOOL                              isFileTransferInProgress;
 
 @property (nonatomic, assign) NSInteger                         fileSize;
@@ -24,6 +24,11 @@
 @property (nonatomic, strong) NSMutableData *                   outputData;
 @property (nonatomic, assign) NSUInteger                        readBytes;
 @property (nonatomic, assign) NSUInteger                        byteIndex;
+
+@property (nonatomic, strong) NSMutableArray *                  requestQueue;
+@property (nonatomic, weak) RazNetworkRequest *                 activeRequest;
+
+@property (nonatomic, assign) int                               inputBufferLength;
 
 @end
 
@@ -36,11 +41,14 @@
         self.inputStream = inputStream;
         self.outputStream = outputStream;
         self.inputData = [NSMutableData data];
-        self.hasSentName = NO;
+        self.requestQueue = [NSMutableArray array];
+        self.inputBufferLength = 1024;
     }
     
     return self;
 }
+
+#pragma mark - stream management
 
 - (void) closeAllStreams {
     if(self.inputStream){
@@ -83,17 +91,19 @@
             }            
             
             if(self.inputStreamOpened && self.outputStreamOpened){
-                NSLog(@"New connection!");       
+                NSLog(@"New connection!");
                 [[NSNotificationCenter defaultCenter] postNotificationName:kServerConnectedNotification object:self];
+                
+                // if we're connected to a server, send it our nickname
+                if(self.connectionType == RazConnectionTypeServer){
+                    RazNetworkRequest * nickNameRequest = [[RazNetworkRequest alloc] initWithRazNetworkRequestType:RazNetworkRequestTypeNickNameCommand paramaterDictionary:nil andConnection:self];
+                    [self addRequest:nickNameRequest];
+                }
             }
         } break;
             
         case NSStreamEventHasSpaceAvailable: {
-            if(self.connectionType == RazConnectionTypeServer && !self.hasSentName){
-                [self sendNickNameCommand];
-                break;
-            }
-            if(self.outputData){
+            if(self.activeRequest && self.outputData){
                 uint8_t *readBytes = (uint8_t *)[self.outputData mutableBytes];
                 readBytes += self.byteIndex; // instance variable to move pointer
                 int data_len = [self.outputData length];
@@ -106,20 +116,29 @@
                 if(self.byteIndex == data_len){
                     self.outputData = nil;
                     self.byteIndex = 0;
-                    //TODO: inform other parts of the app that we successfully sent the song through
+                    [self.activeRequest requestCompletedSuccessfully:YES];
+                    
+                    //TODO: inform other parts of the app that we successfully sent the file through
+                    // when implementing the output queue, this would be a good time to inform the activeOutputRequest
+                    // that it completed successfully
                 }
-            }            
+            } else if(!self.activeRequest){
+                [self processNetworkQueue];
+            }
         } break;
             
         case NSStreamEventHasBytesAvailable: {
-            uint8_t     buffer[1024];
+            // TODO: implement dynamic buffer length based on state of connection
+            // i.e if we're expecting a file, increase size of buffer,
+            // if we're expecting a command, a smaller buffer will suffice
+            // this is to reduce the work done when attempting to parse input for commands
+            uint8_t     buffer[self.inputBufferLength];
             NSInteger   bytesRead;
             bytesRead = [self.inputStream read:buffer maxLength:sizeof(buffer)];
             
             if (bytesRead > 0) {
                 [self.inputData appendBytes:buffer length:bytesRead];
                 NSLog(@"Read %lu bytes of data", (unsigned long)[self.inputData length]);
-                
                 if(!self.isFileTransferInProgress){
                     //TODO: this is kinda heavy too
                     NSUInteger indexOfEnd = [self indexOfDelimiter:kSocketMessageEndDelimiter inData:[[NSString alloc] initWithData:self.inputData encoding:NSUTF8StringEncoding]];
@@ -131,6 +150,7 @@
                 } else {
                     if([self.inputData length] >= self.fileSize){
                         //send notification to server that the file has been successfully received
+                        [self.activeRequest requestCompletedSuccessfully:YES];
                         [self sendComfirmationOfFileTransfer];
                         // file transfer complete
                         [self processFileData];
@@ -161,6 +181,8 @@
         } break;
     }
 }
+
+#pragma mark - input processing
 
 - (void) processCommands:(NSArray*)commands {
     for(int i = 0; i < [commands count]; i += 2){
@@ -245,9 +267,8 @@
     
     // if part of message is missing (only possible case is the end) then keep the start delimiter as part of the message so we can parse everything again when we get the full end
     NSRange processedRange = {missingPartOfMessage ? startIndex + kSocketMessageStartDelimiter.length : startIndex, endIndex + kSocketMessageEndDelimiter.length - startIndex};
-//    NSLog(@"processed range: {%lu, %lu} length of message: %lu", (unsigned long)processedRange.location, (unsigned long)processedRange.length, (unsigned long)fullMessage.length);
-//    NSLog(@"message: %@", fullMessage);
     [fullMessage replaceCharactersInRange:processedRange withString:@""];
+    
     self.inputData = [[fullMessage dataUsingEncoding:NSUTF8StringEncoding] mutableCopy];
 }
 
@@ -259,6 +280,7 @@
     
     if(!fileSaved){
         //TODO: file didn't save, do something
+        NSLog(@"File \"%@\" received but not saved!", self.fileName);
     } else {
         // file successfully saved and everyone's happy
         NSLog(@"transfer of song %@ was successful", self.fileName);
@@ -266,7 +288,7 @@
         self.inputData = [[self.inputData subdataWithRange:(NSRange){self.fileSize, (unsigned long)[self.inputData length] - self.fileSize}] mutableCopy];
         self.fileName = nil;
         self.fileSize = 0;
-        self.isFileTransferInProgress = NO;        
+        self.isFileTransferInProgress = NO;
     }
 }
 
@@ -276,11 +298,60 @@
     return range.location;
 }
 
-#pragma mark - Sending section
+#pragma mark - network request section
 
-- (void) sendFile:(NSData*)fileData withName:(NSString*)fileName {
-    [self sendFileMetaDataCommandWithFileName:fileName andFileSize:(unsigned long)[fileData length]];
-    [self sendData:fileData];
+- (void) performRequest:(RazNetworkRequest*)networkRequest {
+    self.activeRequest = networkRequest;
+    
+    NSDictionary * paramDictionary = [networkRequest getParameterDictionary];
+    
+    switch ([networkRequest getRequestType]) {
+        case RazNetworkRequestTypeNickNameCommand:{
+            [networkRequest requestCompletedSuccessfully:[self sendNickNameCommand]];
+        } break;        
+        case RaznetworkRequestTypeFile: {
+            NSData *       fileData = [paramDictionary objectForKey:kNetworkParamaterFileData];
+            NSString *     fileName = [paramDictionary objectForKey:kNetworkParameterFileName];
+            
+            NSDictionary * fileDataParamDictionary = @{kNetworkParamaterFileData : fileData};
+            NSDictionary * fileMetaDataParamDictionary = @{kNetworkParameterFileName : fileName, kNetworkParamaterFileSize : [NSNumber numberWithUnsignedInt:[fileData length]]};
+            
+            // QUEUE NOW: [fileNetworkRequest] ... [other requests]
+            // activeRequest == fileNetworkRequest ** this means our observer WILL NOT process the queue as we modify it
+            
+            RazNetworkRequest * fileMetaDataNetworkRequest = [[RazNetworkRequest alloc] initWithRazNetworkRequestType:RazNetworkRequestTypeFileMetaDataCommand paramaterDictionary:fileMetaDataParamDictionary andConnection:self];
+            [self addRequest:fileMetaDataNetworkRequest atIndex:0];
+            
+            RazNetworkRequest * fileDataNetworkRequest = [[RazNetworkRequest alloc] initWithRazNetworkRequestType:RazNetworkRequestTypeFileData paramaterDictionary:fileDataParamDictionary andConnection:self];
+            [self addRequest:fileDataNetworkRequest atIndex:1];
+            
+            // QUEUE NOW: [fileMetaDataNetworkRequest][fileDataNetworkRequest][fileNetworkRequest]....[other requests]
+            
+            // this sets the activeNetwork to nil and removes us from the queue,
+            // which will set off the observer and process the queue accordingly
+            [networkRequest requestCompletedSuccessfully:YES];
+            
+            // activeRequest == nil ** this means our observer WILL process the queue
+            // QUEUE NOW: [fileMetaDataNetworkRequest][fileDataNetworkRequest]....[other requests]
+        } break;
+        case RazNetworkRequestTypeFileMetaDataCommand: {
+            NSString *     fileName = [paramDictionary objectForKey:kNetworkParameterFileName];
+            NSNumber *     fileSize = [paramDictionary objectForKey:kNetworkParamaterFileSize];
+            
+            [networkRequest requestCompletedSuccessfully:[self sendFileMetaDataCommandWithFileName:fileName andFileSize:fileSize.integerValue]];
+        } break;
+        case RazNetworkRequestTypeFileData: {
+            NSData *    fileData = [paramDictionary objectForKey:kNetworkParamaterFileData];
+            
+            [self sendData:fileData];
+        } break;
+        case RazNetworkRequestTypeConfirmationOfFileTransferCommand: {
+            [networkRequest requestCompletedSuccessfully:[self sendComfirmationOfFileTransfer]];
+        } break;
+        default: {
+            NSLog(@"attempted to send an unknown request type");
+        } break;
+    }    
 }
 
 - (void) sendData:(NSData *)data {
@@ -307,7 +378,7 @@
     }
     
     NSLog(@"sent a %ld byte long message", (long)bytesWritten);
-    return YES;
+    return bytesWritten == length;
 }
 
 - (BOOL) sendCommandWithString:(NSString*) command {
@@ -318,19 +389,59 @@
     return [self sendMessage:crypto_data withLength:[someData length]];
 }
 
-- (void) sendNickNameCommand {
+- (void) addRequest:(RazNetworkRequest*) networkRequest atIndex:(NSInteger)index {
+    [self.requestQueue insertObject:networkRequest atIndex:index];
+    [self processNetworkQueue];
+}
+
+- (void) addRequest:(RazNetworkRequest *)networkRequest {
+    [self.requestQueue addObject:networkRequest];
+    [self processNetworkQueue];
+}
+
+- (void) removeRequest:(RazNetworkRequest*) networkRequest {
+    if(self.activeRequest == networkRequest){
+        self.activeRequest = nil;
+    }
+    
+    [self.requestQueue removeObject:networkRequest];
+    [self processNetworkQueue];
+    NSLog(@"requestQueue has %lu objects in it", (unsigned long)[self.requestQueue count]);
+}
+
+- (void) sendFile:(NSData*)fileData withName:(NSString*)fileName {
+    [self sendFileMetaDataCommandWithFileName:fileName andFileSize:(unsigned long)[fileData length]];
+    [self sendData:fileData];
+}
+
+- (BOOL) sendNickNameCommand {
     NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@", kSocketMessageStartDelimiter, kCommandClientNickName, kCommandDelimiter, [[NSUserDefaults standardUserDefaults] valueForKey:kUserDefaultsClientNickName], kSocketMessageEndDelimiter];
-    self.hasSentName = [self sendCommandWithString:msgToSend];
+    return [self sendCommandWithString:msgToSend];
 }
 
-- (void) sendFileMetaDataCommandWithFileName:(NSString*)fileName andFileSize:(NSInteger)fileSize {
+- (BOOL) sendFileMetaDataCommandWithFileName:(NSString*)fileName andFileSize:(NSInteger)fileSize {
     NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@%@%@%ld%@", kSocketMessageStartDelimiter, kCommandFileName, kCommandDelimiter, fileName, kCommandDelimiter ,kCommandFileSize, kCommandDelimiter, (long)fileSize, kSocketMessageEndDelimiter];
-    [self sendCommandWithString:msgToSend];
+    return [self sendCommandWithString:msgToSend];
 }
 
-- (void) sendComfirmationOfFileTransfer {
+- (BOOL) sendComfirmationOfFileTransfer {
     NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@", kSocketMessageStartDelimiter, kCommandFileTransferCompleted, kCommandDelimiter, self.fileName, kSocketMessageEndDelimiter];
-    [self sendCommandWithString:msgToSend];
+    return [self sendCommandWithString:msgToSend];
+}
+
+#pragma mark - queue processing
+
+- (void)processNetworkQueue {
+    if(self.activeRequest || ![self.outputStream hasSpaceAvailable]){
+        // do nothing, a request is already in the process of sending
+        // or the output stream isn't ready to send stuff yet
+    } else {
+        if([self.requestQueue count] > 0){
+            [self performRequest:[self.requestQueue objectAtIndex:0]];
+        } else {
+            // no more requests to be made. Queue is empty :)
+        }
+    }
 }
 
 @end

@@ -9,6 +9,7 @@
 #import "RazConnectionManager.h"
 #import "RazConnection.h"
 #import "QServer.h"
+#import "RazNetworkRequest.h"
 
 @interface RazConnectionManager() < QServerDelegate, NSStreamDelegate, RazConnectionDelegate >
 
@@ -106,15 +107,24 @@
     [self.serverConnection setDelegate:self];
 }
 
+#pragma mark - Network requests
+
 - (void) broadcastSongFromURL:(NSURL *)songPath {
     NSString *  path =      [songPath path];
     NSData *    songData =  [[NSFileManager defaultManager] contentsAtPath:path];
     
+    NSDictionary * fileParamDictionary = @{kNetworkParameterFileName : [path lastPathComponent], kNetworkParamaterFileData : songData};
+    
     if(songData && [songData length] > 0){
         for(RazConnection * client in self.connectionsArray){
-            [client sendFile:songData withName:[songPath lastPathComponent]];
+            RazNetworkRequest * fileNetworkRequest = [[RazNetworkRequest alloc] initWithRazNetworkRequestType:RaznetworkRequestTypeFile paramaterDictionary:fileParamDictionary andConnection:client];
+            [client addRequest:fileNetworkRequest];
         }
     }
+}
+
+- (void) registerNicknameWithPartyServer {
+    
 }
 
 #pragma mark - Stream management
@@ -175,7 +185,6 @@
 - (void)connectionDidClose:(id)connection {
     if(self.serverConnection && [connection isEqual:self.serverConnection]){
         [[NSNotificationCenter defaultCenter] postNotificationName:kServerDisconnectedNotification object:connection];
-//        self.serverConnection = nil;
     } else {
         [self.connectionsArray removeObject:connection];
         [[NSNotificationCenter defaultCenter] postNotificationName:kClientDisconnectedNotification object:connection];

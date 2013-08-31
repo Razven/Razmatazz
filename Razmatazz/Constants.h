@@ -37,5 +37,9 @@
 #define kCommandFileSize                        @"fileSize"
 #define kCommandFileTransferCompleted           @"fileTransferCompleted"
 
+#define kNetworkParameterFileName               @"fileName"
+#define kNetworkParamaterFileSize               @"fileSize"
+#define kNetworkParamaterFileData               @"fileData"
+
 
 #endif

@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
+@class RazNetworkRequest;
+
 @protocol RazConnectionDelegate <NSObject>
 
 @required
@@ -32,5 +34,8 @@ typedef enum {
 - (void) openAllStreams;
 
 - (void) sendFile:(NSData*)fileData withName:(NSString*)fileName;
+
+- (void) addRequest:(RazNetworkRequest*)networkRequest;
+- (void) removeRequest:(RazNetworkRequest*)networkRequest;
 
 @end
