@@ -130,10 +130,10 @@
                     }
                 } else {
                     if([self.inputData length] >= self.fileSize){
+                        //TODO: send notification to server that the file has been successfully received
+                        
                         // file transfer complete
                         [self processFileData];
-                        
-                         //TODO: send notification to server that the file has been successfully received
                     }
                 }
             }
@@ -167,6 +167,7 @@
         NSString *command = [commands objectAtIndex:i];
         if([command isEqualToString:kCommandClientNickName]){ //client registered their nickname
             self.connectionName = [commands objectAtIndex:i + 1];
+            NSLog(@"received nick name command: %@", self.connectionName);
             [[NSNotificationCenter defaultCenter] postNotificationName:kClientRegisteredNotification object:self];
         } else if ([command isEqualToString:kCommandFileName]){ //file name was sent through in preparation for a file to be sent
             self.fileName = [commands objectAtIndex:i + 1];
@@ -182,12 +183,30 @@
     }
 }
 
+- (NSString *) getNSStringFromCommandBytes:(const void*)commandBytes {
+    NSString * returnString;
+    for(int i = [self.inputData length]; i > 0; i--) {
+        returnString = [[NSString alloc] initWithBytes:commandBytes length:i encoding:NSUTF8StringEncoding];
+        //TODO: this is absolutely filthy
+        if(returnString) {
+            return returnString;
+        }
+    }
+    
+    return returnString;
+}
+
 //TODO: this whole function is heavy and needs revision
 - (void) parseInputData {
     
     BOOL missingPartOfMessage = NO;
     
-    NSMutableString * fullMessage = [[NSMutableString alloc] initWithData:self.inputData encoding:NSUTF8StringEncoding];
+    if([self.inputData length] < kSocketMessageStartDelimiter.length + kSocketMessageEndDelimiter.length){
+        NSLog(@"inputData too short to parse");
+        return;
+    }
+    
+    NSMutableString * fullMessage = [[self getNSStringFromCommandBytes:[self.inputData bytes]] mutableCopy];
     NSInteger startIndex = [fullMessage rangeOfString:kSocketMessageStartDelimiter].location;
     NSInteger endIndex = 0;
     
@@ -225,19 +244,19 @@
 }
 
 - (void) processFileData {
-    NSData * fileData = [self.inputData subdataWithRange:(NSRange){0, self.fileSize}];    
-    NSURL * filePath = [NSURL URLWithString:self.fileName relativeToURL:[NSURL URLWithString:APPLICATION_SONGS_DIRECTORY]];
+    NSData * fileData = [self.inputData subdataWithRange:(NSRange){0, self.fileSize}];
+    NSString * filePath = [APPLICATION_SONGS_DIRECTORY stringByAppendingPathComponent:self.fileName];
     
-    BOOL fileSaved = [fileData writeToURL:filePath atomically:YES];
+    BOOL fileSaved = [fileData writeToFile:filePath atomically:YES];
     
     if(!fileSaved){
         //TODO: file didn't save, do something
     } else {
         // file successfully saved and everyone's happy
+        self.inputData = [[self.inputData subdataWithRange:(NSRange){self.fileSize, (unsigned long)[self.inputData length] - self.fileSize}] mutableCopy];
         self.fileName = nil;
         self.fileSize = 0;
         self.isFileTransferInProgress = NO;        
-        self.inputData = [[self.inputData subdataWithRange:(NSRange){self.fileSize, (unsigned long)[self.inputData length] - self.fileSize}] mutableCopy];
     }
 }
 
@@ -247,8 +266,10 @@
     return range.location;
 }
 
+#pragma mark - Sending section
+
 - (void) sendFile:(NSData*)fileData withName:(NSString*)fileName {
-    [self sendFileMetaDataCommandWithFileName:fileName andFileSize:(unsigned long)[fileName length]];
+    [self sendFileMetaDataCommandWithFileName:fileName andFileSize:(unsigned long)[fileData length]];
     [self sendData:fileData];
 }
 
@@ -293,7 +314,7 @@
 }
 
 - (void) sendFileMetaDataCommandWithFileName:(NSString*)fileName andFileSize:(NSInteger)fileSize {
-    NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@%@%ld%@", kSocketMessageStartDelimiter, kCommandFileName, kCommandDelimiter, fileName, kCommandFileSize, kCommandDelimiter, (long)fileSize, kSocketMessageEndDelimiter];
+    NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@%@%@%ld%@", kSocketMessageStartDelimiter, kCommandFileName, kCommandDelimiter, fileName, kCommandDelimiter ,kCommandFileSize, kCommandDelimiter, (long)fileSize, kSocketMessageEndDelimiter];
     [self sendCommandWithString:msgToSend];
 }
 

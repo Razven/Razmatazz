@@ -25,7 +25,7 @@
 #define kServerDisconnectedNotification         @"ServerDisconnected"
 
 #define kSocketMessageStartDelimiter            @"razmatazz1597534862"
-#define kSocketMessageEndDelimiter              @"7539512684razmatazz"
+#define kSocketMessageEndDelimiter              @"7539512684razmatazz\0"
 
 #define kUserDefaultsClientNickName             @"clientNickName"
 
