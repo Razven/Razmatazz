@@ -40,6 +40,17 @@
     return [self.connectionsArray count];
 }
 
+- (NSArray *)getArrayOfClientNames {
+    NSMutableArray * names = [NSMutableArray arrayWithCapacity:[self.connectionsArray count]];
+    
+    for(RazConnection * client in self.connectionsArray){
+        if(client.connectionName){
+            [names addObject:client.connectionName];
+        }
+    }
+    return names;
+}
+
 - (void) startServer {
     [self.server start];
     if(self.server.registeredName != nil){
@@ -96,14 +107,14 @@
 }
 
 - (void) broadcastSongFromURL:(NSURL *)songPath {
-    NSString *  path = [songPath path];
-    NSData *    data = [[NSFileManager defaultManager] contentsAtPath:path];
+    NSString *  path =      [songPath path];
+    NSData *    songData =  [[NSFileManager defaultManager] contentsAtPath:path];
     
-    if(data && [data length] > 0){
+    if(songData && [songData length] > 0){
         for(RazConnection * client in self.connectionsArray){
-            [client sendData:data];
+            [client sendFile:songData withName:[songPath lastPathComponent]];
         }
-    }    
+    }
 }
 
 #pragma mark - Stream management
@@ -139,13 +150,13 @@
     [[NSNotificationCenter defaultCenter] postNotificationName:kServerStoppedNotification object:@[server, error]];
 }
 
-- (id)server:(QServer *)server connectionForInputStream:(NSInputStream *)inputStream outputStream:(NSOutputStream *)outputStream
-{
+- (id)server:(QServer *)server connectionForInputStream:(NSInputStream *)inputStream outputStream:(NSOutputStream *)outputStream {
     id  result;
     
     RazConnection *connection = [[RazConnection alloc] initWithInputStream:inputStream andOutputStream:outputStream];
     [connection setDelegate:self];
     [connection openAllStreams];
+    [connection setConnectionType:RazConnectionTypeClient];
     
     [self.connectionsArray addObject:connection];
     result  = connection;

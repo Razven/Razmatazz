@@ -15,6 +15,7 @@
 - (id) init;
 
 - (NSUInteger) getNumberOfActiveClients;
+- (NSArray*) getArrayOfClientNames;
 
 - (void) startServer;
 - (void) stopServer;

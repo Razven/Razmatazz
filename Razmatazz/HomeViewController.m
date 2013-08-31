@@ -19,6 +19,9 @@
 @property (nonatomic, strong) UIButton *joinPartyButton, *hostPartyButton;
 @property (nonatomic, weak) RazConnectionManager* razConnectionManager;
 
+@property (nonatomic, strong) UIAlertView *             hostPartyAlertView;
+@property (nonatomic, strong) UIAlertView *             joinPartyAlertView;
+
 @end
 
 @implementation HomeViewController
@@ -29,6 +32,14 @@
     if(self) {
         self.joinPartyButton = [[UIButton alloc] init];
         self.hostPartyButton = [[UIButton alloc] init];
+        
+        self.hostPartyAlertView = [[UIAlertView alloc] initWithTitle:@"Name your party" message:@"Choose a name for your party" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"OK", nil];
+        [self.hostPartyAlertView setAlertViewStyle:UIAlertViewStylePlainTextInput];
+        [self.hostPartyAlertView textFieldAtIndex:0].delegate = self;
+        
+        self.joinPartyAlertView = [[UIAlertView alloc] initWithTitle:@"Nickname" message:@"Please enter your nickname" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"OK", nil];
+        [self.joinPartyAlertView setAlertViewStyle:UIAlertViewStylePlainTextInput];
+        [self.joinPartyAlertView textFieldAtIndex:0].delegate = self;
     }
     
     return self;
@@ -96,18 +107,23 @@
     // Dispose of any resources that can be recreated.
 }
 
+- (void) pushJoinPartyViewController {
+    JoinPartyViewController *jpvc = [[JoinPartyViewController alloc] initWithType:kRazmatazzBonjourType];
+    [self.navigationController pushViewController:jpvc animated:YES];
+}
+
 #pragma mark - UIButton delegate
 
 - (void) hostPartyButtonPressed {
-    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Name your party" message:@"Choose a name for your party" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"OK", nil];
-    [alertView setAlertViewStyle:UIAlertViewStylePlainTextInput];
-    [alertView textFieldAtIndex:0].delegate = self;
-    [alertView show];
+    [self.hostPartyAlertView show];
 }
 
 - (void) joinPartyButtonPressed {
-    JoinPartyViewController *jpvc = [[JoinPartyViewController alloc] initWithType:kRazmatazzBonjourType];
-    [self.navigationController pushViewController:jpvc animated:YES];
+    if(![[NSUserDefaults standardUserDefaults] valueForKey:kUserDefaultsClientNickName]){
+        [self.joinPartyAlertView show];
+    } else {
+        [self pushJoinPartyViewController];
+    }
 }
 
 #pragma mark - UIAlertView delegate
@@ -119,9 +135,16 @@
 }
 
 - (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
-    if(buttonIndex == 1){
-        HostPartyViewController *hpvc = [[HostPartyViewController alloc] initWithPartyName:[[alertView textFieldAtIndex:0] text]];
-        [self.navigationController pushViewController:hpvc animated:YES];
+    if(alertView == self.hostPartyAlertView){
+        if(buttonIndex == 1){
+            HostPartyViewController *hpvc = [[HostPartyViewController alloc] initWithPartyName:[[alertView textFieldAtIndex:0] text]];
+            [self.navigationController pushViewController:hpvc animated:YES];
+        }
+    } else if(alertView == self.joinPartyAlertView){
+        if(buttonIndex == 1){
+            [[NSUserDefaults standardUserDefaults] setValue:[[alertView textFieldAtIndex:0] text] forKey:kUserDefaultsClientNickName];
+            [self pushJoinPartyViewController];
+        }
     }
 }
 

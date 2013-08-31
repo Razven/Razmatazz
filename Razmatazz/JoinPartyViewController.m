@@ -16,7 +16,7 @@
 
 @interface JoinPartyViewController () < UITableViewDataSource, UITableViewDelegate, NSNetServiceBrowserDelegate >
 
-@property (nonatomic, strong)            UITableView *          clientsConnectedTableView;
+@property (nonatomic, strong)            UITableView *          partiesAvailableTableView;
 @property (nonatomic, strong)            NSMutableArray *       services;
 @property (nonatomic, strong, readwrite) NSNetServiceBrowser *  browser;
 
@@ -33,9 +33,9 @@
     self = [super init];
     
     if(self){
-        self.clientsConnectedTableView = [[UITableView alloc] init];
-        self.clientsConnectedTableView.delegate = self;
-        self.clientsConnectedTableView.dataSource = self;
+        self.partiesAvailableTableView = [[UITableView alloc] init];
+        self.partiesAvailableTableView.delegate = self;
+        self.partiesAvailableTableView.dataSource = self;
         
         self.connectView = [[RazInfoPopupView alloc] init];
         self.connectionDissapearedView = [[RazInfoPopupView alloc] init];
@@ -58,11 +58,11 @@
 - (void) viewWillLayoutSubviews {
     [super viewWillLayoutSubviews];
     
-    self.clientsConnectedTableView.frame = CGRectMake(5, 5, self.view.frame.size.width - 10, self.view.frame.size.height - 10);
-    self.clientsConnectedTableView.backgroundColor = [UIColor lightGrayColor];
-    self.clientsConnectedTableView.layer.cornerRadius = 3.0f;
-    self.clientsConnectedTableView.layer.borderWidth = 1.0f;
-    self.clientsConnectedTableView.layer.borderColor = [UIColor whiteColor].CGColor;
+    self.partiesAvailableTableView.frame = CGRectMake(5, 5, self.view.frame.size.width - 10, self.view.frame.size.height - 10);
+    self.partiesAvailableTableView.backgroundColor = [UIColor lightGrayColor];
+    self.partiesAvailableTableView.layer.cornerRadius = 3.0f;
+    self.partiesAvailableTableView.layer.borderWidth = 1.0f;
+    self.partiesAvailableTableView.layer.borderColor = [UIColor whiteColor].CGColor;
     
     [self.connectView setFrame:CGRectMake(0, self.view.frame.size.height, 200, 200)];
     [self.connectView setCenter:CGPointMake(self.view.center.x, self.connectView.center.y)];
@@ -81,7 +81,7 @@
     [self.connectionDissapearedView.actionButton addTarget:self action:@selector(hideConnectionDissapearedView) forControlEvents:UIControlEventTouchUpInside];
     
     self.noPartiesAvailableLabel.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
-    self.noPartiesAvailableLabel.center = self.clientsConnectedTableView.center;
+    self.noPartiesAvailableLabel.center = self.partiesAvailableTableView.center;
     self.noPartiesAvailableLabel.textAlignment = NSTextAlignmentCenter;
     self.noPartiesAvailableLabel.backgroundColor = [UIColor clearColor];
     [self.noPartiesAvailableLabel setText:@"No parties found"];
@@ -108,9 +108,9 @@
 {
     [super viewDidLoad];
     
-    [self.clientsConnectedTableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"cell"];
+    [self.partiesAvailableTableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"cell"];
     
-    [self.view addSubview:self.clientsConnectedTableView];
+    [self.view addSubview:self.partiesAvailableTableView];
 	
     [self.navigationItem setTitle:@"Join a party"];
     
@@ -135,7 +135,7 @@
     [self.services removeAllObjects];
     
     if (self.isViewLoaded) {
-        [self.clientsConnectedTableView reloadData];
+        [self.partiesAvailableTableView reloadData];
     }
 }
 
@@ -147,7 +147,7 @@
     
     service = [self.services objectAtIndex:(NSUInteger) indexPath.row];
     
-    cell = [self.clientsConnectedTableView dequeueReusableCellWithIdentifier:@"cell"];
+    cell = [self.partiesAvailableTableView dequeueReusableCellWithIdentifier:@"cell"];
     if (cell == nil) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"cell"];
     }
@@ -168,7 +168,7 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     NSNetService * service;
     
-    [self.clientsConnectedTableView deselectRowAtIndexPath:indexPath animated:YES];
+    [self.partiesAvailableTableView deselectRowAtIndexPath:indexPath animated:YES];
     
     // Find the service associated with the cell and start a connection to that.
     
@@ -186,7 +186,7 @@
     int numOfConnections = [self.services count];
     
     if(numOfConnections == 0){
-        [self.clientsConnectedTableView addSubview:self.noPartiesAvailableLabel];
+        [self.partiesAvailableTableView addSubview:self.noPartiesAvailableLabel];
     } else {
         [self.noPartiesAvailableLabel removeFromSuperview];
     }
@@ -221,7 +221,7 @@
 
 - (void) showConnectViewForService:(NSNetService*)service withCompletionBlock:(void(^)())completion {
     self.connectView.infoLabel.text = [NSString stringWithFormat:@"Connecting to %@", [service name]];
-    [self.clientsConnectedTableView addSubview:self.connectView];
+    [self.partiesAvailableTableView addSubview:self.connectView];
     
     [self.navigationItem setHidesBackButton:YES animated:YES];
     
@@ -232,8 +232,8 @@
         }
     }];
     
-    self.clientsConnectedTableView.scrollEnabled = NO;
-    self.clientsConnectedTableView.allowsSelection = NO;
+    self.partiesAvailableTableView.scrollEnabled = NO;
+    self.partiesAvailableTableView.allowsSelection = NO;
     
     self.connectingToService = service;
     
@@ -241,7 +241,7 @@
 }
 
 - (void) showConnectionDissapearedView {
-    [self.clientsConnectedTableView addSubview:self.connectionDissapearedView];
+    [self.partiesAvailableTableView addSubview:self.connectionDissapearedView];
     [UIView animateWithDuration:0.3f animations:^{
         self.connectionDissapearedView.center = CGPointMake(self.connectView.center.x, self.view.center.y);
     }];
@@ -263,8 +263,8 @@
             }
         }];
         
-        self.clientsConnectedTableView.scrollEnabled = YES;
-        self.clientsConnectedTableView.allowsSelection = YES;
+        self.partiesAvailableTableView.scrollEnabled = YES;
+        self.partiesAvailableTableView.allowsSelection = YES;
         
         self.connectingToService = nil;
     }
@@ -285,8 +285,8 @@
             [self.navigationItem setHidesBackButton:NO animated:YES];
         }];
         
-        self.clientsConnectedTableView.scrollEnabled = YES;
-        self.clientsConnectedTableView.allowsSelection = YES;
+        self.partiesAvailableTableView.scrollEnabled = YES;
+        self.partiesAvailableTableView.allowsSelection = YES;
     }
 }
 
@@ -313,7 +313,7 @@
     }];
     
     if (self.isViewLoaded) {
-        [self.clientsConnectedTableView reloadData];
+        [self.partiesAvailableTableView reloadData];
     }
 }
 
@@ -369,6 +369,7 @@
         RazConnection* connection = [[RazConnection alloc] initWithInputStream:inStream andOutputStream:outStream];
         [connection setConnectionName:service.name];
         [connection openAllStreams];
+        [connection setConnectionType:RazConnectionTypeServer];
         [[(AppDelegate*)[UIApplication sharedApplication].delegate sharedRazConnectionManager] setServerConnection:connection];
     }
 }

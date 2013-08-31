@@ -15,6 +15,10 @@
 
 @property (nonatomic, assign) BOOL                              inputStreamOpened, outputStreamOpened;
 @property (nonatomic, assign) BOOL                              hasSentName;
+@property (nonatomic, assign) BOOL                              isFileTransferInProgress;
+
+@property (nonatomic, assign) NSInteger                         fileSize;
+@property (nonatomic, strong) NSString *                        fileName;
 
 @property (nonatomic, strong) NSMutableData *                   inputData;
 @property (nonatomic, strong) NSMutableData *                   outputData;
@@ -85,8 +89,8 @@
         } break;
             
         case NSStreamEventHasSpaceAvailable: {
-            if(!self.hasSentName){
-                [self sendName];
+            if(self.connectionType == RazConnectionTypeServer && !self.hasSentName){
+                [self sendNickNameCommand];
                 break;
             }
             if(self.outputData){
@@ -101,40 +105,37 @@
                 self.byteIndex += len;
                 if(self.byteIndex == data_len){
                     self.outputData = nil;
+                    self.byteIndex = 0;
+                    //TODO: inform other parts of the app that we successfully sent the song through
                 }
             }            
         } break;
             
         case NSStreamEventHasBytesAvailable: {
-            uint8_t     b[1024];
+            uint8_t     buffer[1024];
             NSInteger   bytesRead;
+            bytesRead = [self.inputStream read:buffer maxLength:sizeof(buffer)];
             
-            bytesRead = [self.inputStream read:b maxLength:sizeof(b)];
-            if (bytesRead <= 0) {
-                // Do nothing; we'll handle EOF and error in the
-                // NSStreamEventEndEncountered and NSStreamEventErrorOccurred case,
-                // respectively.
-            } else {
-                [self.inputData appendBytes:b length:bytesRead];
-                
-                NSUInteger indexOfEnd = [self indexOfDelimiter:[kSocketMessageEndDelimiter dataUsingEncoding:NSUTF8StringEncoding] inData:self.inputData];
-                
-                //we reached the end of the message
-                if(indexOfEnd != NSNotFound){
-                    // TODO: do something with the data now that we have it all
-                    NSLog(@"Finished reading data");
-                }
-                
-                //                else {
-                //                        NSUInteger indexOfStart = [self indexOfDelimiter:[kSocketMessageStartDelimiter dataUsingEncoding:NSUTF8StringEncoding] inData:[NSData dataWithBytes:b length:bytesRead]];
-//                    
-//                    // we found the start delimiter, start appending data to our array
-//                    if(indexOfStart != NSNotFound){
-//                        self.inputData = [NSMutableData data];
-//                        [self.inputData appendBytes:&b[indexOfStart + kSocketMessageStartDelimiter.length] length:bytesRead - indexOfStart];
-//                    }
-//                }
+            if (bytesRead > 0) {
+                [self.inputData appendBytes:buffer length:bytesRead];
                 NSLog(@"Read %lu bytes of data", (unsigned long)[self.inputData length]);
+                
+                if(!self.isFileTransferInProgress){
+                    //TODO: this is kinda heavy too
+                    NSUInteger indexOfEnd = [self indexOfDelimiter:kSocketMessageEndDelimiter inData:[[NSString alloc] initWithData:self.inputData encoding:NSUTF8StringEncoding]];
+                    
+                    //we reached the end of the message
+                    if(indexOfEnd != NSNotFound){
+                        [self parseInputData];
+                    }
+                } else {
+                    if([self.inputData length] >= self.fileSize){
+                        // file transfer complete
+                        [self processFileData];
+                        
+                         //TODO: send notification to server that the file has been successfully received
+                    }
+                }
             }
         } break;
             
@@ -159,104 +160,147 @@
     }
 }
 
-- (NSUInteger)indexOfDelimiter:(NSData*)delimiter inData:(NSData*)data
-{
-    const char* delimiterBytes = [delimiter bytes];
-    const char* dataBytes = [data bytes];
-    
-    if([data length] < [delimiter length]){
-        return NSNotFound;
-    }
-    
-    // walk the length of the buffer, looking for a byte that matches the start
-    // of the pattern; we can skip (|needle|-1) bytes at the end, since we can't
-    // have a match that's shorter than needle itself
-    for (int i = 0; i < [data length] - [delimiter length] + 1; i++) {
-        // walk needle's bytes while they still match the bytes of haystack
-        // starting at i; if we walk off the end of needle, we found a match
-        int j = 0;
-        while (j < [delimiter length] && delimiterBytes[j] == dataBytes[i + j]) {
-            j++;
-        }
-        if (j == [delimiter length]) {
-            return i;
+- (void) processCommands:(NSArray*)commands {
+    for(int i = 0; i < [commands count]; i += 2){
+        NSString *command = [commands objectAtIndex:i];
+        if([command isEqualToString:kCommandClientNickName]){ //client registered their nickname
+            self.connectionName = [commands objectAtIndex:i + 1];
+            [[NSNotificationCenter defaultCenter] postNotificationName:kClientRegisteredNotification object:self];
+        } else if ([command isEqualToString:kCommandFileName]){ //file name was sent through in preparation for a file to be sent
+            self.fileName = [commands objectAtIndex:i + 1];
+        } else if([command isEqualToString:kCommandFileSize]){ //file size was sent through in preparation for a file to be sent
+            NSNumberFormatter * formatter = [[NSNumberFormatter alloc] init];
+            [formatter setNumberStyle:NSNumberFormatterDecimalStyle];
+            self.fileSize = [formatter numberFromString:[commands objectAtIndex:i + 1]].integerValue;
+        } else {
+            NSLog(@"Unrecognized command: %@", command);
         }
     }
-    return NSNotFound;
 }
 
-//- (void)sendFile:(NSMutableData*)data {
-//    uint8_t *readBytes = (uint8_t *)[data mutableBytes];
-//    uint8_t buf[1024];
-//    int len = 1024;
-//    NSInteger * bytesWritten;
-//    
-//    while (YES) {
-//        if (len == 0) {
-//            break;
-//        }
-//        if ( [self.outputStream hasSpaceAvailable] ) {
-//            (void)strncpy(buf, readBytes, len);
-//            readBytes += len;
-//            if ([self.outputStream write:(const uint8_t *)buf maxLength:len] == -1) {
-//                [self handleError:[self.outputStream streamError]];
-//                break;
-//            }
-//            [bytesWritten setIntValue:[bytesWritten intValue]+len];
-//            len = (([data length] - [bytesWritten intValue] >= 1024) ? 1024 :
-//                   [data length] - [bytesWritten intValue]);
-//        }
-//    }
-//    NSData *newData = [self.outputStream propertyForKey:
-//                       NSStreamDataWrittenToMemoryStreamKey];
-//    if (!newData) {
-//        NSLog(@"No data written to memory!");
-//    } else {
-////        [self processData:newData];
-//    }
-//}
+//TODO: this whole function is heavy and needs revision
+- (void) parseInputData {
+    
+    BOOL missingPartOfMessage = NO;
+    
+    NSMutableString * fullMessage = [[NSMutableString alloc] initWithData:self.inputData encoding:NSUTF8StringEncoding];
+    NSInteger startIndex = [fullMessage rangeOfString:kSocketMessageStartDelimiter].location;
+    NSInteger endIndex = 0;
+    
+    NSArray * startDelimiterSplit = [fullMessage componentsSeparatedByString:kSocketMessageStartDelimiter];
+    
+    for(int i = 1; i < [startDelimiterSplit count]; i++){
+        NSArray * endDelimiterSplit = [[startDelimiterSplit objectAtIndex:i] componentsSeparatedByString:kSocketMessageEndDelimiter];
+        if(i == [startDelimiterSplit count] - 1){
+            NSInteger localEndIndex = [[startDelimiterSplit objectAtIndex:i] rangeOfString:kSocketMessageEndDelimiter].location;
+            
+            //the data would have to look something like: name:Razzle Dazzle7539512684razmat
+            //notice the end delimiter is cut off, we haven't read it all yet
+            if(localEndIndex == NSNotFound){
+                break;
+            }
+            
+            endIndex += localEndIndex;
+        } else {
+            endIndex += [[startDelimiterSplit objectAtIndex:i] length];
+        }
+        
+        [self processCommands:[[endDelimiterSplit objectAtIndex:0] componentsSeparatedByString:kCommandDelimiter]];
+        
+        if(self.fileName && self.fileSize > 0){
+            // we have all the info for a file transfer, so the next thing
+            // coming down the pipe will be our file.
+            self.isFileTransferInProgress = YES;
+        }
+    }
+    
+    // if part of message is missing (only possible case is the end) then keep the start delimiter as part of the message so we can parse everything again when we get the full end
+    NSRange processedRange = {missingPartOfMessage ? startIndex + kSocketMessageStartDelimiter.length : startIndex, endIndex + kSocketMessageEndDelimiter.length - startIndex};
+    [fullMessage replaceCharactersInRange:processedRange withString:@""];
+    self.inputData = [[fullMessage dataUsingEncoding:NSUTF8StringEncoding] mutableCopy];    
+}
+
+- (void) processFileData {
+    NSData * fileData = [self.inputData subdataWithRange:(NSRange){0, self.fileSize}];    
+    NSURL * filePath = [NSURL URLWithString:self.fileName relativeToURL:[NSURL URLWithString:APPLICATION_SONGS_DIRECTORY]];
+    
+    BOOL fileSaved = [fileData writeToURL:filePath atomically:YES];
+    
+    if(!fileSaved){
+        //TODO: file didn't save, do something
+    } else {
+        // file successfully saved and everyone's happy
+        self.fileName = nil;
+        self.fileSize = 0;
+        self.isFileTransferInProgress = NO;        
+        self.inputData = [[self.inputData subdataWithRange:(NSRange){self.fileSize, (unsigned long)[self.inputData length] - self.fileSize}] mutableCopy];
+    }
+}
+
+- (NSUInteger)indexOfDelimiter:(NSString*)delimiter inData:(NSString*)data {
+    NSRange range = [data rangeOfString:delimiter];
+    
+    return range.location;
+}
+
+- (void) sendFile:(NSData*)fileData withName:(NSString*)fileName {
+    [self sendFileMetaDataCommandWithFileName:fileName andFileSize:(unsigned long)[fileName length]];
+    [self sendData:fileData];
+}
 
 - (void) sendData:(NSData *)data {
     self.outputData = [data mutableCopy];
     
     if([self.outputStream hasSpaceAvailable]){
         [self stream:self.outputStream handleEvent:NSStreamEventHasSpaceAvailable];
-        NSLog(@"sending %lu bytes of data to %@", (unsigned long)[self.outputData length], self.connectionName);
+        NSLog(@"sending %lu bytes of data to %@", (unsigned long)[self.outputData length], self.connectionName ? self.connectionName : @"unregistered client");
+    } else {
+        //TODO: handle case where output stream doesn't have available space
     }
 }
 
-- (void)sendMessage:(uint8_t*)message
-{
-    // Only write to the stream if it has space available, otherwise we might block.
-    // In a real app you have to handle this case properly but in this sample code it's
-    // OK to ignore it; if the stream stops transferring data the user is going to have
-    // to tap a lot before we fill up our stream buffer (-:
-    
+- (BOOL)sendMessage:(uint8_t*)message withLength:(NSUInteger)length {
     if(!self.outputStream){
         NSLog(@"trying to send a message with a nil output stream");
-        return;
+        return NO;
     }
     
-    NSInteger   bytesWritten = 0;
-    
-    while(bytesWritten < sizeof(message) && [self.outputStream hasSpaceAvailable]) {
-        bytesWritten += [self.outputStream write:&message[bytesWritten] maxLength:(sizeof(message) - bytesWritten)];
+    NSInteger bytesWritten = 0;
+    //TODO: handle case where we haven't sent the full message and the stream doesn't have space available
+    while(bytesWritten < length && [self.outputStream hasSpaceAvailable]) {
+        bytesWritten += [self.outputStream write:&message[bytesWritten] maxLength:(length - bytesWritten)];
     }
     
     NSLog(@"sent %ld bytes of name message", (long)bytesWritten);
-    
-    self.hasSentName = YES;
+    return YES;
 }
 
-- (void) sendName {
-    //TODO: send actual name of client once we have a way for them to enter their name
-    NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@", kSocketMessageStartDelimiter, @"name:raz", kSocketMessageEndDelimiter];
-    
-    NSData *someData = [msgToSend dataUsingEncoding:NSUTF8StringEncoding];
+- (BOOL) sendCommandWithString:(NSString*) command {
+    NSData *someData = [command dataUsingEncoding:NSUTF8StringEncoding];
     const void *bytes = [someData bytes];
     uint8_t *crypto_data = (uint8_t*)bytes;
     
-    [self sendMessage:crypto_data];
+    return [self sendMessage:crypto_data withLength:[someData length]];
 }
+
+- (void) sendNickNameCommand {
+    NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@", kSocketMessageStartDelimiter, kCommandClientNickName, kCommandDelimiter, [[NSUserDefaults standardUserDefaults] valueForKey:kUserDefaultsClientNickName], kSocketMessageEndDelimiter];
+    [self sendCommandWithString:msgToSend];
+}
+
+- (void) sendFileMetaDataCommandWithFileName:(NSString*)fileName andFileSize:(NSInteger)fileSize {
+    NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@%@%ld%@", kSocketMessageStartDelimiter, kCommandFileName, kCommandDelimiter, fileName, kCommandFileSize, kCommandDelimiter, (long)fileSize, kSocketMessageEndDelimiter];
+    self.hasSentName = [self sendCommandWithString:msgToSend];
+}
+
+//- (void)sendUnfinishedNickName {
+//    NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@", kSocketMessageStartDelimiter, kCommandName, kCommandDelimiter, [[NSUserDefaults standardUserDefaults] valueForKey:kUserDefaultsClientNickName], @"7539512684razma"];
+//    
+//    NSData *someData = [msgToSend dataUsingEncoding:NSUTF8StringEncoding];
+//    const void *bytes = [someData bytes];
+//    uint8_t *crypto_data = (uint8_t*)bytes;
+//    
+//    [self sendMessage:crypto_data withLength:[someData length]];
+//}
 
 @end
