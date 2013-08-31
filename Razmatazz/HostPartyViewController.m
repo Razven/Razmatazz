@@ -216,7 +216,7 @@
     
     [exporter exportAsynchronouslyWithCompletionHandler:^{        	
         [self updateStatus:@"song exported"];        
-        NSLog(@"Successfully exported %@ to %@", songTitle, exportURL);
+        NSLog(@"Successfully exported %@", songTitle);
         [self sendSongToClientsFromURL:exportURL];
     }];
 }

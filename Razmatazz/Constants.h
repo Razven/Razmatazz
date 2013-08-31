@@ -24,8 +24,10 @@
 #define kServerConnectedNotification            @"ServerConnected"
 #define kServerDisconnectedNotification         @"ServerDisconnected"
 
+#define kFileTransferCompletedNotification      @"FileTransferCompleted"
+
 #define kSocketMessageStartDelimiter            @"razmatazz1597534862"
-#define kSocketMessageEndDelimiter              @"7539512684razmatazz\0"
+#define kSocketMessageEndDelimiter              @"7539512684razmatazz"
 
 #define kUserDefaultsClientNickName             @"clientNickName"
 
@@ -33,6 +35,7 @@
 #define kCommandClientNickName                  @"clientNickName"
 #define kCommandFileName                        @"fileName"
 #define kCommandFileSize                        @"fileSize"
+#define kCommandFileTransferCompleted           @"fileTransferCompleted"
 
 
 #endif

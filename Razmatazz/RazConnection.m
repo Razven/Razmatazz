@@ -130,8 +130,8 @@
                     }
                 } else {
                     if([self.inputData length] >= self.fileSize){
-                        //TODO: send notification to server that the file has been successfully received
-                        
+                        //send notification to server that the file has been successfully received
+                        [self sendComfirmationOfFileTransfer];
                         // file transfer complete
                         [self processFileData];
                     }
@@ -177,7 +177,11 @@
             [formatter setNumberStyle:NSNumberFormatterDecimalStyle];
             self.fileSize = [formatter numberFromString:[commands objectAtIndex:i + 1]].integerValue;
             NSLog(@"received file size command: %ld", (long)self.fileSize);
-        } else {
+        } else if([command isEqualToString:kCommandFileTransferCompleted]){
+            NSLog(@"%@ successfully received the song: %@", self.connectionName, [commands objectAtIndex:i + 1]);
+            [[NSNotificationCenter defaultCenter] postNotificationName:kFileTransferCompletedNotification object:self];
+        }
+        else {
             NSLog(@"Unrecognized command: %@", command);
         }
     }
@@ -237,10 +241,14 @@
         }
     }
     
+    endIndex += startIndex + kSocketMessageStartDelimiter.length;
+    
     // if part of message is missing (only possible case is the end) then keep the start delimiter as part of the message so we can parse everything again when we get the full end
     NSRange processedRange = {missingPartOfMessage ? startIndex + kSocketMessageStartDelimiter.length : startIndex, endIndex + kSocketMessageEndDelimiter.length - startIndex};
+//    NSLog(@"processed range: {%lu, %lu} length of message: %lu", (unsigned long)processedRange.location, (unsigned long)processedRange.length, (unsigned long)fullMessage.length);
+//    NSLog(@"message: %@", fullMessage);
     [fullMessage replaceCharactersInRange:processedRange withString:@""];
-    self.inputData = [[fullMessage dataUsingEncoding:NSUTF8StringEncoding] mutableCopy];    
+    self.inputData = [[fullMessage dataUsingEncoding:NSUTF8StringEncoding] mutableCopy];
 }
 
 - (void) processFileData {
@@ -253,6 +261,8 @@
         //TODO: file didn't save, do something
     } else {
         // file successfully saved and everyone's happy
+        NSLog(@"transfer of song %@ was successful", self.fileName);
+        [[NSNotificationCenter defaultCenter] postNotificationName:kFileTransferCompletedNotification object:self.fileName];
         self.inputData = [[self.inputData subdataWithRange:(NSRange){self.fileSize, (unsigned long)[self.inputData length] - self.fileSize}] mutableCopy];
         self.fileName = nil;
         self.fileSize = 0;
@@ -318,14 +328,9 @@
     [self sendCommandWithString:msgToSend];
 }
 
-//- (void)sendUnfinishedNickName {
-//    NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@", kSocketMessageStartDelimiter, kCommandName, kCommandDelimiter, [[NSUserDefaults standardUserDefaults] valueForKey:kUserDefaultsClientNickName], @"7539512684razma"];
-//    
-//    NSData *someData = [msgToSend dataUsingEncoding:NSUTF8StringEncoding];
-//    const void *bytes = [someData bytes];
-//    uint8_t *crypto_data = (uint8_t*)bytes;
-//    
-//    [self sendMessage:crypto_data withLength:[someData length]];
-//}
+- (void) sendComfirmationOfFileTransfer {
+    NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@", kSocketMessageStartDelimiter, kCommandFileTransferCompleted, kCommandDelimiter, self.fileName, kSocketMessageEndDelimiter];
+    [self sendCommandWithString:msgToSend];
+}
 
 @end
