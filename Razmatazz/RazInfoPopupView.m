@@ -17,7 +17,7 @@
     if(self) {
         self.infoLabel = [[UILabel alloc] init];
         self.actionButton = [[UIButton alloc] init];
-        self.activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+//        self.activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
     }
     
     return self;
@@ -46,11 +46,12 @@
     self.actionButton.layer.borderColor = [UIColor whiteColor].CGColor;
     self.actionButton.backgroundColor = [UIColor lightGrayColor];
     
-    self.activityIndicator.center = CGPointMake(CGRectGetMidX(self.bounds), CGRectGetMidY(self.bounds) - 17);
     [self addSubview:self.infoLabel];
     [self addSubview:self.actionButton];
-    [self addSubview:self.activityIndicator];
-
+    
+    if(self.activityView){
+        [self addSubview:self.activityView];
+    }
 }
 
 @end

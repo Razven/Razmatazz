@@ -38,4 +38,8 @@ typedef enum {
 - (void) addRequest:(RazNetworkRequest*)networkRequest;
 - (void) removeRequest:(RazNetworkRequest*)networkRequest;
 
+- (void) retryActiveRequest;
+- (void) retryRequestLater:(RazNetworkRequest*) networkRequest;
+- (void) cancelSongRequests;
+
 @end

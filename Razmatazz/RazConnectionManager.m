@@ -117,11 +117,23 @@
     
     if(songData && [songData length] > 0){
         for(RazConnection * client in self.connectionsArray){
-            for(int i = 0; i < 4;i++){
-                RazNetworkRequest * fileNetworkRequest = [[RazNetworkRequest alloc] initWithRazNetworkRequestType:RaznetworkRequestTypeFile paramaterDictionary:fileParamDictionary andConnection:client];
-                [client addRequest:fileNetworkRequest];
-            }
+            RazNetworkRequest * fileNetworkRequest = [[RazNetworkRequest alloc] initWithRazNetworkRequestType:RaznetworkRequestTypeFile paramaterDictionary:fileParamDictionary andConnection:client];
+            [client addRequest:fileNetworkRequest];
         }
+    }
+}
+
+- (void) cancelSongBroadcast {
+    for(RazConnection * client in self.connectionsArray){
+        [client cancelSongRequests];
+    }
+}
+
+- (void) sendPlayMusicRequestWithSongName:(NSString*)songName {
+    for(RazConnection * client in self.connectionsArray){
+        NSDictionary * paramDict = @{kNetworkParameterFileName : songName};
+        RazNetworkRequest * fileNetworkRequest = [[RazNetworkRequest alloc] initWithRazNetworkRequestType:RazNetworkRequestTypePlayMusicCommand paramaterDictionary:paramDict andConnection:client];
+        [client addRequest:fileNetworkRequest];
     }
 }
 

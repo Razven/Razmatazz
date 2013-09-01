@@ -69,7 +69,12 @@
     [self.connectView.actionButton setTitle:@"Cancel" forState:UIControlStateNormal];
     [self.connectView.actionButton setTitle:@"Cancel" forState:UIControlStateHighlighted];
     [self.connectView.actionButton addTarget:self action:@selector(hideConnectView) forControlEvents:UIControlEventTouchUpInside];
-    [self.connectView.activityIndicator startAnimating];
+    
+    UIActivityIndicatorView * activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+    activityIndicator.center = CGPointMake(CGRectGetMidX(self.connectView.bounds), CGRectGetMidY(self.connectView.bounds) - 17);
+    [activityIndicator startAnimating];
+    
+    [self.connectView setActivityView:activityIndicator];
     
     [self.connectionDissapearedView setFrame:CGRectMake(0, self.view.frame.size.height, 200, 200)];
     [self.connectionDissapearedView setCenter:CGPointMake(self.view.center.x, self.connectionDissapearedView.center.y)];

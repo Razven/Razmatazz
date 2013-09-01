@@ -16,6 +16,7 @@ typedef enum {
     RaznetworkRequestTypeFile, // this is an empty request so that the programmer can just send this request with the file and name and let it figure everything out
     RazNetworkRequestTypeFileData,
     RazNetworkRequestTypeConfirmationOfFileTransferCommand,
+    RazNetworkRequestTypePlayMusicCommand
 } RazNetworkRequestType;
 
 //typedef void(^RazNetworkRequestBlock)();
@@ -30,5 +31,7 @@ typedef enum {
 - (NSDictionary *) getParameterDictionary;
 
 - (void) requestCompletedSuccessfully:(BOOL)success;
+
+- (void) requestIsNowActive;
 
 @end

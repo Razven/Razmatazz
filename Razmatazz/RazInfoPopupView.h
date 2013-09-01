@@ -12,7 +12,8 @@
 
 @property (nonatomic, strong) UILabel * infoLabel;
 @property (nonatomic, strong) UIButton * actionButton;
-@property (nonatomic, strong) UIActivityIndicatorView * activityIndicator;
+//@property (nonatomic, strong) UIActivityIndicatorView * activityIndicator;
+@property (nonatomic, strong) UIView * activityView;
 
 - (id) init;
 

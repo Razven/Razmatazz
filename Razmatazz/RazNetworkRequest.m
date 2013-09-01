@@ -33,6 +33,13 @@
     return self;
 }
 
+- (void) dealloc {
+    if(self.timeoutTimer){
+        [self.timeoutTimer invalidate];
+        self.timeoutTimer = nil;
+    }
+}
+
 - (RazNetworkRequestType)getRequestType {
     return _requestType;
 }
@@ -41,21 +48,26 @@
     return _parameterDictionary;
 }
 
-- (void) timeoutCheck {
-    self.numberOfRequestAttempts++;
-    if(self.numberOfRequestAttempts == 3){
-        //TODO: request failed too many times
+- (void) stopTimeoutTimer {
+    if(self.timeoutTimer){
+        [self.timeoutTimer invalidate];
+        self.timeoutTimer = nil;
     }
-    
-    [self.connection addRequest:self];
 }
 
 - (void) requestCompletedSuccessfully:(BOOL)success {
+    // we got some sort of response so stop the timeout timer from running
+    [self stopTimeoutTimer];
+    
     if(success) {
         [self requestSucceeded];
     } else {
         [self requestFailed];
     }
+}
+
+- (void) requestIsNowActive {
+    self.timeoutTimer = [NSTimer timerWithTimeInterval:5 target:self selector:@selector(requestFailed) userInfo:nil repeats:NO];
 }
 
 - (void) requestSucceeded {
@@ -74,11 +86,16 @@
         } break;
         case RazNetworkRequestTypeFileData: {
             NSLog(@"successfully sent file data");
-            [self.connection removeRequest:self];            
+            [[NSNotificationCenter defaultCenter] postNotificationName:kFileSuccessfullySentNotification object:nil];
+            [self.connection removeRequest:self];
         } break;
         case RazNetworkRequestTypeConfirmationOfFileTransferCommand: {
             NSLog(@"successfully sent confirmation of file transfer command");
             [self.connection removeRequest:self];            
+        } break;
+        case RazNetworkRequestTypePlayMusicCommand: {
+            NSLog(@"successfully sent play music command");
+            [self.connection removeRequest:self];
         } break;
         default: {
             NSLog(@"unknown request type succeeded");
@@ -87,21 +104,35 @@
 }
 
 - (void) requestFailed {
+    self.numberOfRequestAttempts++;
+    NSLog(@"request of type %u failed.", (RazConnectionType)self.requestType);
+    
+    if(self.numberOfRequestAttempts == 3){
+        //TODO: failed too many times. Do something.
+        NSLog(@"connection of type: %u failed too many times. Disconnecting.", (RazNetworkRequestType)self.requestType);
+        [self.connection closeAllStreams];        
+    } else {
+        
+    }
+    
     switch (self.requestType){
         case RazNetworkRequestTypeNickNameCommand: {
-            
+            [self.connection retryRequestLater:self];
         } break;
         case RaznetworkRequestTypeFile: {
-            
+            [self.connection retryRequestLater:self];
         } break;
         case RazNetworkRequestTypeFileMetaDataCommand: {
-            
+            [self.connection retryActiveRequest];
         } break;
         case RazNetworkRequestTypeFileData: {
-            
+            [self.connection retryActiveRequest];
         } break;
         case RazNetworkRequestTypeConfirmationOfFileTransferCommand: {
-            
+            [self.connection retryRequestLater:self];
+        } break;
+        case RazNetworkRequestTypePlayMusicCommand: {
+            [self.connection retryActiveRequest];
         } break;
         default: {
             NSLog(@"unknown request type succeeded");

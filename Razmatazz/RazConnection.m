@@ -150,8 +150,10 @@
                     if([self.inputData length] >= self.fileSize){
                         NSLog(@"Read %lu bytes of data", (unsigned long)[self.inputData length]);
                         //TODO: implement incoming network queue and tell the activerequest it's finished which will trigger this
-                        //rather than doing it manually                        
-                        RazNetworkRequest* confirmationOfFileTransferRequest = [[RazNetworkRequest alloc] initWithRazNetworkRequestType:RazNetworkRequestTypeConfirmationOfFileTransferCommand paramaterDictionary:nil andConnection:self];
+                        //rather than doing it manually
+                        
+                        NSDictionary * paramDictionary = @{kNetworkParameterFileName : self.fileName};
+                        RazNetworkRequest* confirmationOfFileTransferRequest = [[RazNetworkRequest alloc] initWithRazNetworkRequestType:RazNetworkRequestTypeConfirmationOfFileTransferCommand paramaterDictionary:paramDictionary andConnection:self];
                         [self addRequest:confirmationOfFileTransferRequest];
                         
                         // file transfer complete
@@ -204,6 +206,9 @@
         } else if([command isEqualToString:kCommandFileTransferCompleted]){
             NSLog(@"%@ successfully received the song: %@", self.connectionName, [commands objectAtIndex:i + 1]);
             [[NSNotificationCenter defaultCenter] postNotificationName:kFileTransferCompletedNotification object:self];
+        } else if([command isEqualToString:kCommandPlaySong]){
+            NSLog(@"received play song command");
+            [[NSNotificationCenter defaultCenter] postNotificationName:kPlaySongNotification object:[commands objectAtIndex:i + 1]];
         }
         else {
             NSLog(@"Unrecognized command: %@", command);
@@ -347,7 +352,12 @@
             [self sendData:fileData];
         } break;
         case RazNetworkRequestTypeConfirmationOfFileTransferCommand: {
-            [networkRequest requestCompletedSuccessfully:[self sendComfirmationOfFileTransfer]];
+            NSString * fileName = [paramDictionary objectForKey:kNetworkParameterFileName];
+            [networkRequest requestCompletedSuccessfully:[self sendComfirmationOfFileTransferWithName:fileName]];
+        } break;
+        case RazNetworkRequestTypePlayMusicCommand: {
+            NSString * fileName = [paramDictionary objectForKey:kNetworkParameterFileName];
+            [networkRequest requestCompletedSuccessfully:[self sendPlaySongCommandWithName:fileName]];
         } break;
         default: {
             NSLog(@"attempted to send an unknown request type");
@@ -410,7 +420,40 @@
     [self.requestQueue removeObject:networkRequest];
     NSLog(@"requestQueue has %lu objects in it", (unsigned long)[self.requestQueue count]);
     [self processNetworkQueue];
-    
+}
+
+- (void) cancelSongRequests {
+    for(RazNetworkRequest * networkRequest in self.requestQueue){
+        RazNetworkRequestType requestType = [networkRequest getRequestType];
+        if(requestType == RaznetworkRequestTypeFile || requestType == RazNetworkRequestTypeFileMetaDataCommand || requestType == RazNetworkRequestTypeFileData){
+            //let's avoid removing requests from the queue which have already been started
+            if(self.activeRequest != networkRequest){
+                [self removeRequest:networkRequest];
+            }
+        }
+    }
+}
+
+- (void) resetVariables {
+    self.activeRequest = nil;
+    self.outputData = nil;
+    self.byteIndex = 0;
+    self.fileName = nil;
+    self.fileSize = 0;
+}
+
+- (void) retryActiveRequest {
+    NSLog(@"retrying request of type %u now", (RazNetworkRequestType)[self.activeRequest getRequestType]);
+    [self resetVariables];
+    [self processNetworkQueue];
+}
+
+- (void) retryRequestLater:(RazNetworkRequest*) networkRequest {
+    NSLog(@"retrying request of type %u later", (RazNetworkRequestType)[networkRequest getRequestType]);
+    [self resetVariables];
+    [self.requestQueue removeObject:networkRequest];
+    [self.requestQueue addObject:networkRequest];
+    [self processNetworkQueue];
 }
 
 - (void) sendFile:(NSData*)fileData withName:(NSString*)fileName {
@@ -428,8 +471,13 @@
     return [self sendCommandWithString:msgToSend];
 }
 
-- (BOOL) sendComfirmationOfFileTransfer {
-    NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@", kSocketMessageStartDelimiter, kCommandFileTransferCompleted, kCommandDelimiter, self.fileName, kSocketMessageEndDelimiter];
+- (BOOL) sendComfirmationOfFileTransferWithName:(NSString*)fileName {
+    NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@", kSocketMessageStartDelimiter, kCommandFileTransferCompleted, kCommandDelimiter, fileName, kSocketMessageEndDelimiter];
+    return [self sendCommandWithString:msgToSend];
+}
+
+- (BOOL) sendPlaySongCommandWithName:(NSString*)songName {
+    NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@", kSocketMessageStartDelimiter, kCommandPlaySong, kCommandDelimiter, songName, kSocketMessageEndDelimiter];
     return [self sendCommandWithString:msgToSend];
 }
 

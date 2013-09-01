@@ -10,12 +10,15 @@
 #import "RazConnectionManager.h"
 #import "AppDelegate.h"
 #import "RazInfoPopupView.h"
+#import <AVFoundation/AVFoundation.h>
 
 @interface PartyRoomViewController () < UIAlertViewDelegate >
 
 @property (nonatomic, strong) NSString *                    partyName;
 @property (nonatomic, weak) RazConnectionManager *          connectionManager;
 @property (nonatomic, strong) RazInfoPopupView *            serverDisconnectedView;
+
+@property (nonatomic, strong) AVAudioPlayer *               audioPlayer;
 
 @end
 
@@ -30,6 +33,7 @@
         self.serverDisconnectedView = [[RazInfoPopupView alloc] init];
         
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(serverDisconnected:) name:kServerDisconnectedNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playSong:) name:kPlaySongNotification object:nil];
     }
     
     return self;
@@ -112,6 +116,12 @@
 
 - (void)serverDisconnected:(NSNotification*)notification {
     [self showServerDisconnectedView];
+}
+
+- (void) playSong:(NSNotification*)notification {
+    NSLog(@"playing song: %@", [notification object]);
+    self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@%@", APPLICATION_SONGS_DIRECTORY, [notification object]]] error:nil];
+    [self.audioPlayer play];
 }
 
 @end

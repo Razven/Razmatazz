@@ -14,15 +14,29 @@
 #import <AVFoundation/AVFoundation.h>
 #import "RazConnectionManager.h"
 #import "QServer.h"
+#import "RazInfoPopupView.h"
 
 @interface HostPartyViewController ()
 
-@property (nonatomic, strong) NSString* partyName;
-@property (nonatomic, strong) NSError* serverError;
+@property (nonatomic, strong) NSString *              partyName;
+@property (nonatomic, strong) NSError *               serverError;
 
-@property (nonatomic, strong) UIView *songListLabelBackgroundView;
+@property (nonatomic, strong) UIView *                songListLabelBackgroundView;
 
-@property (nonatomic, strong) RazConnectionManager* razConnectionManager;
+@property (nonatomic, weak) RazConnectionManager *    razConnectionManager;
+
+@property (nonatomic, strong) RazInfoPopupView *      songTransferProgressPopup;
+@property (nonatomic, strong) UIProgressView *        songTransferProgressView;
+
+@property (nonatomic, assign) float                   numberOfClientsToReceiveSong;
+@property (nonatomic, assign) float                   numberOfClientsWhoSuccessfullyReceivedSong;
+
+@property (nonatomic, strong) NSIndexPath *           selectedSongIndex;
+
+@property (nonatomic, strong) UIBarButtonItem *       playMusicBarButton;
+
+@property (nonatomic, strong) NSArray *               songsArray;
+
 @end
 
 @implementation HostPartyViewController
@@ -45,6 +59,16 @@
         
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(serverDidStart:) name:kServerStartedNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(serverDidStop:) name:kServerStoppedNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(fileTransferSuccessful:) name:kFileTransferCompletedNotification object:nil];
+        
+        self.songTransferProgressPopup = [[RazInfoPopupView alloc] init];
+        self.songTransferProgressView = [[UIProgressView alloc] initWithProgressViewStyle:UIProgressViewStyleBar];
+        
+        UIImage *playIcon = [UIImage imageNamed:@"group.png"];
+        self.playMusicBarButton = [[UIBarButtonItem alloc] initWithImage:playIcon style:UIBarButtonItemStyleBordered target:self action:@selector(sendPlayMusicRequest)];
+        [self.playMusicBarButton setEnabled:NO];
+        
+        self.songsArray = [NSArray array];
     }
     
     return self;
@@ -85,6 +109,18 @@
     
     [self.songListTableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"SongNameCell"];
     
+    [self.songTransferProgressPopup setFrame:CGRectMake(0, 0, 200, 200)];
+    [self.songTransferProgressPopup setCenter:CGPointMake(self.view.center.x, self.view.center.y)];
+    [self.songTransferProgressPopup.infoLabel setText:@"Broadcasting song to everyone in your party"];
+    [self.songTransferProgressPopup.actionButton setTitle:@"Cancel" forState:UIControlStateNormal];
+    [self.songTransferProgressPopup.actionButton setTitle:@"Cancel" forState:UIControlStateHighlighted];
+    [self.songTransferProgressPopup.actionButton addTarget:self action:@selector(hideFileTransferPopup) forControlEvents:UIControlEventTouchUpInside];
+    
+    self.songTransferProgressView.center = CGPointMake(CGRectGetMidX(self.songTransferProgressPopup.bounds), CGRectGetMidY(self.songTransferProgressPopup.bounds) - 17);
+    [self.songTransferProgressView setTrackTintColor:[UIColor whiteColor]];
+    [self.songTransferProgressView setProgressTintColor:[UIColor darkGrayColor]];
+    [self.songTransferProgressPopup setActivityView:self.songTransferProgressView];
+    
     self.view.backgroundColor = [UIColor lightGrayColor];
 }
 
@@ -110,14 +146,17 @@
         [self updateStatus:@"party room created!"];
     }
     
+    MPMediaQuery *everything = [[MPMediaQuery alloc] init];
+    self.songsArray = [everything items];
+    
     [self.view addSubview:self.statusLabel];
     [self.view addSubview:self.songListLabel];
     [self.view addSubview:self.songListLabelBackgroundView];
-    [self.view addSubview:self.songListTableView];    
+    [self.view addSubview:self.songListTableView];
     
     UIImage *groupIcon = [UIImage imageNamed:@"group.png"];
     UIBarButtonItem *viewClientsConnected = [[UIBarButtonItem alloc] initWithImage:groupIcon style:UIBarButtonItemStyleBordered target:self action:@selector(openClientsConnectedView)];
-    [self.navigationItem setRightBarButtonItem:viewClientsConnected];
+    [self.navigationItem setRightBarButtonItems:@[viewClientsConnected, self.playMusicBarButton]];
 }
 
 - (void) viewWillDisappear:(BOOL)animated {
@@ -143,11 +182,9 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (section == 0){
-        MPMediaQuery *everything = [[MPMediaQuery alloc] init];
-        NSArray *itemsFromGenericQuery = [everything items];
         
         //user has no songs in their iPod library
-        if([itemsFromGenericQuery count] == 0){
+        if([self.songsArray count] == 0){
             self.songListLabelBackgroundView.frame = CGRectMake(self.songListLabelBackgroundView.frame.origin.x, self.songListLabelBackgroundView.frame.origin.y, self.songListLabelBackgroundView.frame.size.width, 45);
             self.songListLabel.text = @"No songs found! Add some songs to your iPod library and try again";
             self.songListLabel.numberOfLines = 0;
@@ -155,7 +192,7 @@
             [self.songListLabel sizeToFit];
             self.songListTableView.hidden = YES;
         }
-        return [itemsFromGenericQuery count];
+        return [self.songsArray count];
     } else {
         return 0;
     }
@@ -166,16 +203,16 @@
     // URLs to look at: http://stackoverflow.com/questions/4746349/copy-ipod-music-library-audio-file-to-iphone-app-folder
     // https://www.google.ca/search?q=ios+xcode+copy+song+from+ipod+to+app+directory&oq=ios+xcode+copy+song+from+ipod+to+app+directory&aqs=chrome..69i57.5915j0&sourceid=chrome&ie=UTF-8
     
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    [self showFileTransferPopup];
     [self transferSongToDoumentsDirectoryWithSongIndex:indexPath];
+    self.selectedSongIndex = indexPath;
 }
 
 - (UITableViewCell*) tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SongNameCell"];
     
-    MPMediaQuery *everything = [[MPMediaQuery alloc] init];
-    NSArray *itemsFromGenericQuery = [everything items];
-    
-    MPMediaItem* song = [itemsFromGenericQuery objectAtIndex:indexPath.row];
+    MPMediaItem* song = [self.songsArray objectAtIndex:indexPath.row];
     NSString *songTitle = [song valueForProperty:MPMediaItemPropertyTitle];
     [cell.textLabel setText:songTitle];
     
@@ -191,10 +228,7 @@
 - (void)transferSongToDoumentsDirectoryWithSongIndex:(NSIndexPath*)songIndex {
     [self updateStatus:@"exporting song"];
     
-    MPMediaQuery *everything = [[MPMediaQuery alloc] init];
-    NSArray *itemsFromGenericQuery = [everything items];
-    
-    MPMediaItem* song = [itemsFromGenericQuery objectAtIndex:songIndex.row];
+    MPMediaItem* song = [self.songsArray objectAtIndex:songIndex.row];
     NSURL *songURL = [song valueForProperty:MPMediaItemPropertyAssetURL];
     NSString *songTitle = [song valueForProperty:MPMediaItemPropertyTitle];
     
@@ -217,12 +251,44 @@
     [exporter exportAsynchronouslyWithCompletionHandler:^{        	
         [self updateStatus:@"song exported"];        
         NSLog(@"Successfully exported %@", songTitle);
+        
+        self.numberOfClientsToReceiveSong = [self.razConnectionManager getNumberOfActiveClients];
         [self sendSongToClientsFromURL:exportURL];
     }];
 }
 
 - (void) sendSongToClientsFromURL:(NSURL*)songPath {
     [self.razConnectionManager broadcastSongFromURL:songPath];
+}
+
+- (void) sendPlayMusicRequest {
+    MPMediaItem* song = [self.songsArray objectAtIndex:self.selectedSongIndex.row];
+    NSString *songTitle = [NSString stringWithFormat:@"%@%@", [song valueForProperty:MPMediaItemPropertyTitle], @".mp4"];
+    [self.razConnectionManager sendPlayMusicRequestWithSongName:songTitle];
+}
+
+#pragma mark - popup management
+
+- (void) showFileTransferPopup {
+    [self.view addSubview:self.songTransferProgressPopup];
+    self.songListTableView.userInteractionEnabled = NO;
+    
+    [UIView animateWithDuration:0.3f animations:^{
+        self.songTransferProgressPopup.center = CGPointMake(self.view.center.x, self.view.center.y);
+    }];
+}
+
+- (void) hideFileTransferPopup {
+    [UIView animateWithDuration:0.3f animations:^{
+        self.songTransferProgressPopup.frame = CGRectMake(self.songTransferProgressPopup.frame.origin.x, self.view.frame.size.height, self.songTransferProgressPopup.frame.size.width, self.songTransferProgressPopup.frame.size.height);
+    } completion:^(BOOL finished) {
+        [self.songTransferProgressPopup removeFromSuperview];
+        self.songListTableView.userInteractionEnabled = YES;
+    }];
+}
+
+- (void) cancelSongRequest {
+    [self.razConnectionManager cancelSongBroadcast];
 }
 
 #pragma mark - BarButtonItem selectors
@@ -232,14 +298,35 @@
     [self.navigationController pushViewController:ccvc animated:YES];
 }
 
-#pragma QServer delegate
+#pragma mark - QServer delegate
 
 - (void)serverDidStart:(NSNotification*)notification {
     [self updateStatus:@"server is running!"];
 }
 
-- (void)serverDidStop:(NSNotificationCenter*)notification {
+- (void)serverDidStop:(NSNotification*)notification {
     [self updateStatus:@"server is down!"];
+}
+
+#pragma mark - FileTransfer notification update
+
+- (void)fileTransferSuccessful:(NSNotification*)notification {
+    self.numberOfClientsWhoSuccessfullyReceivedSong++;
+    [self updateProgress];
+    
+    if(self.numberOfClientsWhoSuccessfullyReceivedSong == self.numberOfClientsToReceiveSong){
+        [self hideFileTransferPopup];
+        self.numberOfClientsToReceiveSong = 0;
+        self.numberOfClientsWhoSuccessfullyReceivedSong = 0;
+        [self.songTransferProgressView setProgress:0];
+        [self.playMusicBarButton setEnabled:YES];
+    }
+}
+
+- (void) updateProgress {
+    float progress = self.numberOfClientsWhoSuccessfullyReceivedSong;
+    progress /= self.numberOfClientsToReceiveSong;
+    [self.songTransferProgressView setProgress:progress];
 }
 
 @end

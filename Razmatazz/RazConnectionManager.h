@@ -23,6 +23,8 @@
 - (void) closePartyServerStream;
 
 - (void) broadcastSongFromURL:(NSURL*)songPath;
+- (void) cancelSongBroadcast;
+- (void) sendPlayMusicRequestWithSongName:(NSString*)songName;
 
 - (void) setServerConnection:(RazConnection*)serverConnection;
 

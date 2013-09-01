@@ -13,18 +13,20 @@
 
 #define kRazmatazzBonjourType                   @"_razmatazz._tcp."
 
-#define kServerStartedNotification              @"QServerStarted"
-#define kServerStoppedNotification              @"QServerStopped"
+#define kServerStartedNotification              @"QServerStartedNotification"
+#define kServerStoppedNotification              @"QServerStoppedNotification"
 
-#define kClientConnectedNotification            @"ClientConnected"
-#define kClientDisconnectedNotification         @"ClientDisconnected"
+#define kClientConnectedNotification            @"ClientConnectedNotification"
+#define kClientDisconnectedNotification         @"ClientDisconnectedNotification"
 
-#define kClientRegisteredNotification           @"ClientRegistered"
+#define kClientRegisteredNotification           @"ClientRegisteredNotification"
 
-#define kServerConnectedNotification            @"ServerConnected"
-#define kServerDisconnectedNotification         @"ServerDisconnected"
+#define kServerConnectedNotification            @"ServerConnectedNotification"
+#define kServerDisconnectedNotification         @"ServerDisconnectedNotification"
 
-#define kFileTransferCompletedNotification      @"FileTransferCompleted"
+#define kFileSuccessfullySentNotification       @"fileSuccessfullySentNotification"
+#define kFileTransferCompletedNotification      @"FileTransferCompletedNotification"
+#define kPlaySongNotification                   @"playSongNotification"
 
 #define kSocketMessageStartDelimiter            @"razmatazz1597534862"
 #define kSocketMessageEndDelimiter              @"7539512684razmatazz"
@@ -36,6 +38,7 @@
 #define kCommandFileName                        @"fileName"
 #define kCommandFileSize                        @"fileSize"
 #define kCommandFileTransferCompleted           @"fileTransferCompleted"
+#define kCommandPlaySong                        @"playSong"
 
 #define kNetworkParameterFileName               @"fileName"
 #define kNetworkParamaterFileSize               @"fileSize"
