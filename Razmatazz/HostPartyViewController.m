@@ -36,6 +36,8 @@
 @property (nonatomic, strong) UIBarButtonItem *       playMusicBarButton;
 
 @property (nonatomic, strong) NSArray *               songsArray;
+@property (nonatomic, strong) AVAudioPlayer *         audioPlayer;
+
 
 @end
 
@@ -265,6 +267,8 @@
     MPMediaItem* song = [self.songsArray objectAtIndex:self.selectedSongIndex.row];
     NSString *songTitle = [NSString stringWithFormat:@"%@%@", [song valueForProperty:MPMediaItemPropertyTitle], @".mp4"];
     [self.razConnectionManager sendPlayMusicRequestWithSongName:songTitle];
+    self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@%@", APPLICATION_SONGS_DIRECTORY, songTitle]] error:nil];
+    [self.audioPlayer prepareToPlay];
 }
 
 #pragma mark - popup management

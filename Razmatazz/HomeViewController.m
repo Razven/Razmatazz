@@ -137,6 +137,7 @@
 - (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
     if(alertView == self.hostPartyAlertView){
         if(buttonIndex == 1){
+            [[self.hostPartyAlertView textFieldAtIndex:0] setText:@""];
             HostPartyViewController *hpvc = [[HostPartyViewController alloc] initWithPartyName:[[alertView textFieldAtIndex:0] text]];
             [self.navigationController pushViewController:hpvc animated:YES];
         }
