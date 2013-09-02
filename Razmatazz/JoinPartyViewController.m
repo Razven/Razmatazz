@@ -113,7 +113,7 @@
 {
     [super viewDidLoad];
     
-    [self.partiesAvailableTableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"cell"];
+//    [self.partiesAvailableTableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"cell"];
     
     [self.view addSubview:self.partiesAvailableTableView];
 	

@@ -73,10 +73,11 @@
 
 - (void)viewDidLoad
 {
-    [super viewDidLoad];	
     [self setupTitle];
+    [super viewDidLoad];
     
-    [self.clientsConnectedTableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"cell"];
+    
+//    [self.clientsConnectedTableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"cell"];
     
     [self.view addSubview:self.clientsConnectedTableView];
     

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		387A458317D41DBA0092D48F /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 387A458117D41DB20092D48F /* MobileCoreServices.framework */; };
 		389AE7CB17CE576E00C9FFA7 /* RazConnectionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 389AE7CA17CE576E00C9FFA7 /* RazConnectionManager.m */; };
 		389AE7CE17CE65C700C9FFA7 /* QServer.m in Sources */ = {isa = PBXBuildFile; fileRef = 389AE7CD17CE65C700C9FFA7 /* QServer.m */; };
 		389AE7D217CE9C2400C9FFA7 /* RazConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 389AE7D117CE9C2400C9FFA7 /* RazConnection.m */; };
@@ -39,6 +40,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		387A458117D41DB20092D48F /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		389AE7C917CE576E00C9FFA7 /* RazConnectionManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RazConnectionManager.h; sourceTree = "<group>"; };
 		389AE7CA17CE576E00C9FFA7 /* RazConnectionManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RazConnectionManager.m; sourceTree = "<group>"; };
 		389AE7CC17CE65C700C9FFA7 /* QServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QServer.h; sourceTree = "<group>"; };
@@ -96,6 +98,7 @@
 				38A2541617CD62B000F76BD5 /* AssetsLibrary.framework in Frameworks */,
 				38C22EA217CBD59900014D39 /* Foundation.framework in Frameworks */,
 				38A2541917CD638F00F76BD5 /* AVFoundation.framework in Frameworks */,
+				387A458317D41DBA0092D48F /* MobileCoreServices.framework in Frameworks */,
 				38D74CCF17CC695000F3EFD5 /* MediaPlayer.framework in Frameworks */,
 				38D74CC317CC533200F3EFD5 /* Security.framework in Frameworks */,
 				38C22EA417CBD59900014D39 /* CoreGraphics.framework in Frameworks */,
@@ -166,6 +169,7 @@
 		38C22E9E17CBD59900014D39 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				387A458117D41DB20092D48F /* MobileCoreServices.framework */,
 				38A2541717CD638400F76BD5 /* AVFoundation.framework */,
 				38A2541417CD62A800F76BD5 /* AssetsLibrary.framework */,
 				38D74CCD17CC694B00F3EFD5 /* MediaPlayer.framework */,
@@ -409,7 +413,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Razmatazz/Razmatazz-Prefix.pch";
 				INFOPLIST_FILE = "Razmatazz/Razmatazz-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;
@@ -423,7 +427,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Razmatazz/Razmatazz-Prefix.pch";
 				INFOPLIST_FILE = "Razmatazz/Razmatazz-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";

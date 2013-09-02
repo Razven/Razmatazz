@@ -15,6 +15,7 @@
 #import "RazConnectionManager.h"
 #import "QServer.h"
 #import "RazInfoPopupView.h"
+#import <MobileCoreServices/MobileCoreServices.h>
 
 @interface HostPartyViewController ()
 
@@ -37,6 +38,8 @@
 
 @property (nonatomic, strong) NSArray *               songsArray;
 @property (nonatomic, strong) AVAudioPlayer *         audioPlayer;
+
+@property (nonatomic, strong) NSString *              songExtension;
 
 
 @end
@@ -109,7 +112,7 @@
     self.songListTableView.layer.borderWidth = 1.0f;
     self.songListTableView.layer.borderColor = [UIColor darkGrayColor].CGColor;
     
-    [self.songListTableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"SongNameCell"];
+//    [self.songListTableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"SongNameCell"];
     
     [self.songTransferProgressPopup setFrame:CGRectMake(0, 0, 200, 200)];
     [self.songTransferProgressPopup setCenter:CGPointMake(self.view.center.x, self.view.center.y)];
@@ -134,6 +137,7 @@
 
 - (void)viewDidLoad
 {
+    [self setTitle:self.partyName];
     [super viewDidLoad];
     
     if(self.serverError){
@@ -206,13 +210,17 @@
     // https://www.google.ca/search?q=ios+xcode+copy+song+from+ipod+to+app+directory&oq=ios+xcode+copy+song+from+ipod+to+app+directory&aqs=chrome..69i57.5915j0&sourceid=chrome&ie=UTF-8
     
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
-    [self showFileTransferPopup];
+    
     [self transferSongToDoumentsDirectoryWithSongIndex:indexPath];
     self.selectedSongIndex = indexPath;
 }
 
 - (UITableViewCell*) tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SongNameCell"];
+    
+    if(!cell){
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"SongNameCell"];
+    }
     
     MPMediaItem* song = [self.songsArray objectAtIndex:indexPath.row];
     NSString *songTitle = [song valueForProperty:MPMediaItemPropertyTitle];
@@ -230,6 +238,10 @@
 - (void)transferSongToDoumentsDirectoryWithSongIndex:(NSIndexPath*)songIndex {
     [self updateStatus:@"exporting song"];
     
+    if(self.numberOfClientsToReceiveSong > 0){
+        [self showFileTransferPopup];
+    }
+    
     MPMediaItem* song = [self.songsArray objectAtIndex:songIndex.row];
     NSURL *songURL = [song valueForProperty:MPMediaItemPropertyAssetURL];
     NSString *songTitle = [song valueForProperty:MPMediaItemPropertyTitle];
@@ -240,8 +252,10 @@
                                       initWithAsset: songAsset
                                       presetName: AVAssetExportPresetPassthrough];
     
-    exporter.outputFileType = @"com.apple.m4a-audio";
-     NSString *exportFile = [APPLICATION_SONGS_DIRECTORY stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.mp4", songTitle]];
+    exporter.outputFileType = @"com.apple.quicktime-movie";
+    
+    self.songExtension = (__bridge  NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)exporter.outputFileType, kUTTagClassFilenameExtension);
+     NSString *exportFile = [APPLICATION_SONGS_DIRECTORY stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.%@", songTitle, self.songExtension]];
     
     if([[NSFileManager defaultManager] fileExistsAtPath:exportFile]) {        
         [[NSFileManager defaultManager] removeItemAtPath:exportFile error:nil];
@@ -251,10 +265,11 @@
     exporter.outputURL = exportURL;
     
     [exporter exportAsynchronouslyWithCompletionHandler:^{        	
-        [self updateStatus:@"song exported"];        
+        [self updateStatus:@"song exported"];
         NSLog(@"Successfully exported %@", songTitle);
         
         self.numberOfClientsToReceiveSong = [self.razConnectionManager getNumberOfActiveClients];
+
         [self sendSongToClientsFromURL:exportURL];
     }];
 }
@@ -265,7 +280,7 @@
 
 - (void) sendPlayMusicRequest {
     MPMediaItem* song = [self.songsArray objectAtIndex:self.selectedSongIndex.row];
-    NSString *songTitle = [NSString stringWithFormat:@"%@%@", [song valueForProperty:MPMediaItemPropertyTitle], @".mp4"];
+    NSString *songTitle = [NSString stringWithFormat:@"%@.%@", [song valueForProperty:MPMediaItemPropertyTitle], self.songExtension];
     [self.razConnectionManager sendPlayMusicRequestWithSongName:songTitle];
     self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@%@", APPLICATION_SONGS_DIRECTORY, songTitle]] error:nil];
     [self.audioPlayer prepareToPlay];

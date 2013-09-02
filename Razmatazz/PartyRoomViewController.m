@@ -120,8 +120,15 @@
 
 - (void) playSong:(NSNotification*)notification {
     NSLog(@"playing song: %@", [notification object]);
-    self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@%@", APPLICATION_SONGS_DIRECTORY, [notification object]]] error:nil];
-    [self.audioPlayer play];
+    NSString * songPath = [NSString stringWithFormat:@"%@/%@", APPLICATION_SONGS_DIRECTORY, [notification object]];
+//    NSData * songData = [[NSFileManager defaultManager] contentsAtPath:songPath];
+    NSError * error;
+    self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:[NSURL fileURLWithPath:songPath] error:&error];
+    BOOL playing = [self.audioPlayer play];
+    
+    if(playing){
+        [[[UIAlertView alloc] initWithTitle:@"NIGGA" message:@"audiplayer initialized fgt" delegate:nil cancelButtonTitle:@"KKKFGT" otherButtonTitles:nil] show];
+    }
 }
 
 @end

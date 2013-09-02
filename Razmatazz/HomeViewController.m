@@ -136,10 +136,10 @@
 
 - (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
     if(alertView == self.hostPartyAlertView){
-        if(buttonIndex == 1){
-            [[self.hostPartyAlertView textFieldAtIndex:0] setText:@""];
+        if(buttonIndex == 1){            
             HostPartyViewController *hpvc = [[HostPartyViewController alloc] initWithPartyName:[[alertView textFieldAtIndex:0] text]];
             [self.navigationController pushViewController:hpvc animated:YES];
+            [[self.hostPartyAlertView textFieldAtIndex:0] setText:@""];
         }
     } else if(alertView == self.joinPartyAlertView){
         if(buttonIndex == 1){

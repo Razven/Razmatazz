@@ -26,7 +26,7 @@
     self = [super init];
     
     if(self) {
-        self.server = [[QServer alloc] initWithDomain:@"local." type:kRazmatazzBonjourType name:nil preferredPort:44444];
+        self.server = [[QServer alloc] initWithDomain:@"local" type:kRazmatazzBonjourType name:nil preferredPort:44444];
         [self.server setDelegate:self];
         
         self.connectionsArray = [NSMutableArray array];
