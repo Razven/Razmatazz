@@ -18,6 +18,8 @@
 		38A6873D17D269940073C988 /* RazNetworkRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 38A6873C17D269930073C988 /* RazNetworkRequest.m */; };
 		38A6E69317CFBCB000D77D76 /* PartyRoomViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 38A6E69217CFBCB000D77D76 /* PartyRoomViewController.m */; };
 		38A7381D17CF16460052692E /* RazInfoPopupView.m in Sources */ = {isa = PBXBuildFile; fileRef = 38A7381C17CF16460052692E /* RazInfoPopupView.m */; };
+		38AE427617D4580B00A60B00 /* RazmatazzIcon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 38AE427517D4580B00A60B00 /* RazmatazzIcon@2x.png */; };
+		38AE427817D4581000A60B00 /* RazmatazzIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 38AE427717D4580F00A60B00 /* RazmatazzIcon.png */; };
 		38C22EA017CBD59900014D39 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 38C22E9F17CBD59900014D39 /* UIKit.framework */; };
 		38C22EA217CBD59900014D39 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 38C22EA117CBD59900014D39 /* Foundation.framework */; };
 		38C22EA417CBD59900014D39 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 38C22EA317CBD59900014D39 /* CoreGraphics.framework */; };
@@ -58,6 +60,8 @@
 		38A6E69217CFBCB000D77D76 /* PartyRoomViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PartyRoomViewController.m; sourceTree = "<group>"; };
 		38A7381B17CF16460052692E /* RazInfoPopupView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RazInfoPopupView.h; sourceTree = "<group>"; };
 		38A7381C17CF16460052692E /* RazInfoPopupView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RazInfoPopupView.m; sourceTree = "<group>"; };
+		38AE427517D4580B00A60B00 /* RazmatazzIcon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RazmatazzIcon@2x.png"; sourceTree = "<group>"; };
+		38AE427717D4580F00A60B00 /* RazmatazzIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = RazmatazzIcon.png; sourceTree = "<group>"; };
 		38C22E9C17CBD59900014D39 /* Razmatazz.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Razmatazz.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		38C22E9F17CBD59900014D39 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		38C22EA117CBD59900014D39 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -152,6 +156,8 @@
 		38C22E9317CBD59900014D39 = {
 			isa = PBXGroup;
 			children = (
+				38AE427717D4580F00A60B00 /* RazmatazzIcon.png */,
+				38AE427517D4580B00A60B00 /* RazmatazzIcon@2x.png */,
 				38C22EA717CBD59900014D39 /* Razmatazz */,
 				38C22E9E17CBD59900014D39 /* Frameworks */,
 				38C22E9D17CBD59900014D39 /* Products */,
@@ -299,6 +305,8 @@
 				38C22EB817CBD59900014D39 /* Default-568h@2x.png in Resources */,
 				38A2540A17CD4C4600F76BD5 /* group@2x.png in Resources */,
 				38A2540C17CD4CC200F76BD5 /* group.png in Resources */,
+				38AE427617D4580B00A60B00 /* RazmatazzIcon@2x.png in Resources */,
+				38AE427817D4581000A60B00 /* RazmatazzIcon.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
