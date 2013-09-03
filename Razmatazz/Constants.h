@@ -39,6 +39,7 @@
 #define kCommandFileSize                        @"fileSize"
 #define kCommandFileTransferCompleted           @"fileTransferCompleted"
 #define kCommandPlaySong                        @"playSong"
+#define kCommandIdentifyServer                  @"identifyServer"
 
 #define kNetworkParameterFileName               @"fileName"
 #define kNetworkParamaterFileSize               @"fileSize"

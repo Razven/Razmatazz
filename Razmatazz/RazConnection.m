@@ -209,11 +209,18 @@
         } else if([command isEqualToString:kCommandPlaySong]){
             NSLog(@"received play song command");
             [[NSNotificationCenter defaultCenter] postNotificationName:kPlaySongNotification object:[commands objectAtIndex:i + 1]];
+        } else if([command isEqualToString:kCommandIdentifyServer]){
+            NSLog(@"received identification request command");
+            [self sendIdentificationReply];
         }
         else {
             NSLog(@"Unrecognized command: %@", command);
         }
     }
+}
+
+- (void) sendIdentificationReply {
+//    RazNetworkRequest * identificationReply = [RazNetworkRequest alloc] initWithRazNetworkRequestType:<#(RazNetworkRequestType)#> paramaterDictionary:<#(NSDictionary *)#> andConnection:<#(RazConnection *)#>
 }
 
 - (NSString *) getNSStringFromCommandBytes:(const void*)commandBytes {
