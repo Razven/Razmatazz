@@ -59,7 +59,6 @@
         
         self.razConnectionManager = [(AppDelegate*)[UIApplication sharedApplication].delegate sharedRazConnectionManager];
         
-        
         [self.razConnectionManager startServer];
         [self.razConnectionManager registerServerWithName:self.partyName];
         
@@ -253,7 +252,7 @@
                                       initWithAsset: songAsset
                                       presetName: AVAssetExportPresetPassthrough];
     
-    exporter.outputFileType = @"com.microsoft.waveform-audio";
+    exporter.outputFileType = @"com.apple.quicktime-movie";
     
     self.songExtension = (__bridge  NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)exporter.outputFileType, kUTTagClassFilenameExtension);
      NSString *exportFile = [APPLICATION_SONGS_DIRECTORY stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.%@", songTitle, self.songExtension]];

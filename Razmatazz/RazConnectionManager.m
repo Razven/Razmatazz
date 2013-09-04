@@ -8,12 +8,12 @@
 
 #import "RazConnectionManager.h"
 #import "RazConnection.h"
-#import "RazServer.h"
+#import "QServer.h"
 #import "RazNetworkRequest.h"
 
-@interface RazConnectionManager() < RazServerDelegate, NSStreamDelegate, RazConnectionDelegate >
+@interface RazConnectionManager() < QServerDelegate, NSStreamDelegate, RazConnectionDelegate >
 
-@property (nonatomic, strong, readwrite) RazServer *              server;
+@property (nonatomic, strong, readwrite) QServer *              server;
 @property (nonatomic, assign, readwrite) NSUInteger             streamOpenCount;
 @property (nonatomic, strong)            NSMutableArray *       connectionsArray;
 @property (nonatomic, strong)            RazConnection *        serverConnection;
@@ -26,7 +26,7 @@
     self = [super init];
     
     if(self) {
-        self.server = [[RazServer alloc] initWithPreferredPort:44444];
+        self.server = [[QServer alloc] initWithDomain:@"local" type:kRazmatazzBonjourType name:nil preferredPort:44444];
         [self.server setDelegate:self];
         
         self.connectionsArray = [NSMutableArray array];
@@ -54,13 +54,18 @@
 
 - (void) startServer {
     [self.server start];
-    if(self.server.partyName != nil){
+    if(self.server.registeredName != nil){
         // TODO: we've already registered the server, do stuff
     }
 }
 
 - (void) registerServerWithName:(NSString*)serverName {
-    [self.server setPartyName:serverName];
+    if([self.server isDeregistered]){
+        [self.server reregisterWithName:serverName];
+    } else {
+        [self.server deregister];
+        [self.server reregisterWithName:serverName];
+    }
 }
 
 - (void) stopServer {
@@ -91,6 +96,10 @@
 
 - (void) setupForNewParty {
     [self closeStreamsAndEmptyConnectionsArray];
+    
+    if (self.server.isDeregistered) {
+        [self.server reregister];
+    }
 }
 
 - (void) setServerConnection:(id)serverConnection {    
@@ -157,15 +166,15 @@
 
 #pragma mark - QServer delegate
 
-- (void)serverDidStart:(RazServer *)server {
+- (void)serverDidStart:(QServer *)server {
     [[NSNotificationCenter defaultCenter] postNotificationName:kServerStartedNotification object:server];
 }
 
-- (void)server:(RazServer *)server didStopWithError:(NSError *)error {
+- (void)server:(QServer *)server didStopWithError:(NSError *)error {
     [[NSNotificationCenter defaultCenter] postNotificationName:kServerStoppedNotification object:@[server, error]];
 }
 
-- (id)server:(RazServer *)server connectionForInputStream:(NSInputStream *)inputStream outputStream:(NSOutputStream *)outputStream {
+- (id)server:(QServer *)server connectionForInputStream:(NSInputStream *)inputStream outputStream:(NSOutputStream *)outputStream {
     id  result;
     
     RazConnection *connection = [[RazConnection alloc] initWithInputStream:inputStream andOutputStream:outputStream];
@@ -180,7 +189,7 @@
     return result;
 }
 
-- (void)server:(RazServer *)server closeConnection:(id)connection {
+- (void)server:(QServer *)server closeConnection:(id)connection {
     [(RazConnection*)connection closeAllStreams];
     [self.connectionsArray removeObject:connection];
 }

@@ -15,7 +15,6 @@
 		38A2540C17CD4CC200F76BD5 /* group.png in Resources */ = {isa = PBXBuildFile; fileRef = 38A2540B17CD4CC200F76BD5 /* group.png */; };
 		38A2541617CD62B000F76BD5 /* AssetsLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 38A2541417CD62A800F76BD5 /* AssetsLibrary.framework */; };
 		38A2541917CD638F00F76BD5 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 38A2541717CD638400F76BD5 /* AVFoundation.framework */; };
-		38A3B63517D6654E00EBEB37 /* RazServer.m in Sources */ = {isa = PBXBuildFile; fileRef = 38A3B63417D6654E00EBEB37 /* RazServer.m */; };
 		38A6873D17D269940073C988 /* RazNetworkRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 38A6873C17D269930073C988 /* RazNetworkRequest.m */; };
 		38A6E69317CFBCB000D77D76 /* PartyRoomViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 38A6E69217CFBCB000D77D76 /* PartyRoomViewController.m */; };
 		38A7381D17CF16460052692E /* RazInfoPopupView.m in Sources */ = {isa = PBXBuildFile; fileRef = 38A7381C17CF16460052692E /* RazInfoPopupView.m */; };
@@ -55,8 +54,6 @@
 		38A2540B17CD4CC200F76BD5 /* group.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = group.png; sourceTree = "<group>"; };
 		38A2541417CD62A800F76BD5 /* AssetsLibrary.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AssetsLibrary.framework; path = System/Library/Frameworks/AssetsLibrary.framework; sourceTree = SDKROOT; };
 		38A2541717CD638400F76BD5 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
-		38A3B63317D6654E00EBEB37 /* RazServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RazServer.h; sourceTree = "<group>"; };
-		38A3B63417D6654E00EBEB37 /* RazServer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RazServer.m; sourceTree = "<group>"; };
 		38A6873B17D269930073C988 /* RazNetworkRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RazNetworkRequest.h; sourceTree = "<group>"; };
 		38A6873C17D269930073C988 /* RazNetworkRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RazNetworkRequest.m; sourceTree = "<group>"; };
 		38A6E69117CFBCB000D77D76 /* PartyRoomViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PartyRoomViewController.h; sourceTree = "<group>"; };
@@ -134,8 +131,6 @@
 				389AE7D117CE9C2400C9FFA7 /* RazConnection.m */,
 				38A6873B17D269930073C988 /* RazNetworkRequest.h */,
 				38A6873C17D269930073C988 /* RazNetworkRequest.m */,
-				38A3B63317D6654E00EBEB37 /* RazServer.h */,
-				38A3B63417D6654E00EBEB37 /* RazServer.m */,
 			);
 			name = Networking;
 			sourceTree = "<group>";
@@ -336,7 +331,6 @@
 				38A7381D17CF16460052692E /* RazInfoPopupView.m in Sources */,
 				38A6E69317CFBCB000D77D76 /* PartyRoomViewController.m in Sources */,
 				38A6873D17D269940073C988 /* RazNetworkRequest.m in Sources */,
-				38A3B63517D6654E00EBEB37 /* RazServer.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
