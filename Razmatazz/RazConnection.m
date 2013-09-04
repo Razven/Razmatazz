@@ -7,30 +7,6 @@
 //
 
 #import "RazConnection.h"
-#import "RazNetworkRequest.h"
-
-@interface RazConnection() <NSStreamDelegate>
-
-@property (nonatomic, strong, readwrite) NSInputStream *        inputStream;
-@property (nonatomic, strong, readwrite) NSOutputStream *       outputStream;
-
-@property (nonatomic, assign) BOOL                              inputStreamOpened, outputStreamOpened;
-@property (nonatomic, assign) BOOL                              isFileTransferInProgress;
-
-@property (nonatomic, assign) NSInteger                         fileSize;
-@property (nonatomic, strong) NSString *                        fileName;
-
-@property (nonatomic, strong) NSMutableData *                   inputData;
-@property (nonatomic, strong) NSMutableData *                   outputData;
-@property (nonatomic, assign) NSUInteger                        readBytes;
-@property (nonatomic, assign) NSUInteger                        byteIndex;
-
-@property (nonatomic, strong) NSMutableArray *                  requestQueue;
-@property (nonatomic, weak) RazNetworkRequest *                 activeRequest;
-
-@property (nonatomic, assign) int                               inputBufferLength;
-
-@end
 
 @implementation RazConnection
 
@@ -55,12 +31,14 @@
         [self.inputStream removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
         [self.inputStream close];
         self.inputStream = nil;
+        self.inputStreamOpened = NO;
     }
     
     if(self.outputStream){
         [self.outputStream removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
         [self.outputStream close];
         self.outputStream = nil;
+        self.outputStreamOpened = NO;
     }
 }
 
@@ -81,27 +59,17 @@
 #pragma mark - NSStream delegate
 
 - (void)stream:(NSStream *)stream handleEvent:(NSStreamEvent)eventCode {
-    switch(eventCode) {
+    switch (eventCode) {
         case NSStreamEventOpenCompleted: {
-            // TODO: stream opened, do stuff here if neccesary
             if([stream isEqual:self.inputStream]){
                 self.inputStreamOpened = YES;
             } else if([stream isEqual:self.outputStream]){
                 self.outputStreamOpened = YES;
-            }            
-            
-            if(self.inputStreamOpened && self.outputStreamOpened){
-                NSLog(@"New connection!");
-                [[NSNotificationCenter defaultCenter] postNotificationName:kServerConnectedNotification object:self];
-                
-                // if we're connected to a server, send it our nickname
-                if(self.connectionType == RazConnectionTypeServer){
-                    RazNetworkRequest * nickNameRequest = [[RazNetworkRequest alloc] initWithRazNetworkRequestType:RazNetworkRequestTypeNickNameCommand paramaterDictionary:nil andConnection:self];
-                    [self addRequest:nickNameRequest];
-                }
             }
-        } break;
             
+            //subclass handles what they do when both streams are successfully opened
+        } break;
+
         case NSStreamEventHasSpaceAvailable: {
             if(self.activeRequest && self.outputData){
                 uint8_t *readBytes = (uint8_t *)[self.outputData mutableBytes];
@@ -137,7 +105,7 @@
             bytesRead = [self.inputStream read:buffer maxLength:sizeof(buffer)];
             
             if (bytesRead > 0) {
-                [self.inputData appendBytes:buffer length:bytesRead];                
+                [self.inputData appendBytes:buffer length:bytesRead];
                 if(!self.isFileTransferInProgress){
                     //TODO: this is kinda heavy too
                     NSUInteger indexOfEnd = [self indexOfDelimiter:kSocketMessageEndDelimiter inData:[[NSString alloc] initWithData:self.inputData encoding:NSUTF8StringEncoding]];
@@ -170,13 +138,8 @@
         case NSStreamEventEndEncountered: {
             NSLog(@"Stream end encountered");
             
-            //TODO: this only gets called once. Take care of our variables somehow
-            
-            if([stream isEqual:self.inputStream]){
-                self.inputStreamOpened = NO;
-            } else if([stream isEqual:self.outputStream]){
-                self.outputStreamOpened = NO;
-            }
+            //if one stream is down, we might as well close them all because we need both streams up
+            //to operate normally.
             
             [self closeAllStreams];
             if(self.delegate && [self.delegate respondsToSelector:@selector(connectionDidClose:)]){
@@ -189,31 +152,7 @@
 #pragma mark - input processing
 
 - (void) processCommands:(NSArray*)commands {
-    for(int i = 0; i < [commands count]; i += 2){
-        NSString *command = [commands objectAtIndex:i];
-        if([command isEqualToString:kCommandClientNickName]){ //client registered their nickname
-            self.connectionName = [commands objectAtIndex:i + 1];
-            NSLog(@"received nick name command: %@", self.connectionName);
-            [[NSNotificationCenter defaultCenter] postNotificationName:kClientRegisteredNotification object:self];
-        } else if ([command isEqualToString:kCommandFileName]){ //file name was sent through in preparation for a file to be sent
-            self.fileName = [commands objectAtIndex:i + 1];
-            NSLog(@"received file name command: %@", self.fileName);
-        } else if([command isEqualToString:kCommandFileSize]){ //file size was sent through in preparation for a file to be sent
-            NSNumberFormatter * formatter = [[NSNumberFormatter alloc] init];
-            [formatter setNumberStyle:NSNumberFormatterDecimalStyle];
-            self.fileSize = [formatter numberFromString:[commands objectAtIndex:i + 1]].integerValue;
-            NSLog(@"received file size command: %ld", (long)self.fileSize);
-        } else if([command isEqualToString:kCommandFileTransferCompleted]){
-            NSLog(@"%@ successfully received the song: %@", self.connectionName, [commands objectAtIndex:i + 1]);
-            [[NSNotificationCenter defaultCenter] postNotificationName:kFileTransferCompletedNotification object:self];
-        } else if([command isEqualToString:kCommandPlaySong]){
-            NSLog(@"received play song command");
-            [[NSNotificationCenter defaultCenter] postNotificationName:kPlaySongNotification object:[commands objectAtIndex:i + 1]];
-        }
-        else {
-            NSLog(@"Unrecognized command: %@", command);
-        }
-    }
+    // implemented by subclass
 }
 
 - (NSString *) getNSStringFromCommandBytes:(const void*)commandBytes {
@@ -307,62 +246,7 @@
 #pragma mark - network request section
 
 - (void) performRequest:(RazNetworkRequest*)networkRequest {
-    self.activeRequest = networkRequest;
-    
-    NSDictionary * paramDictionary = [networkRequest getParameterDictionary];
-    
-    switch ([networkRequest getRequestType]) {
-        case RazNetworkRequestTypeNickNameCommand:{
-            [networkRequest requestCompletedSuccessfully:[self sendNickNameCommand]];
-        } break;        
-        case RaznetworkRequestTypeFile: {
-            NSData *       fileData = [paramDictionary objectForKey:kNetworkParamaterFileData];
-            NSString *     fileName = [paramDictionary objectForKey:kNetworkParameterFileName];
-            
-            NSDictionary * fileDataParamDictionary = @{kNetworkParamaterFileData : fileData};
-            NSDictionary * fileMetaDataParamDictionary = @{kNetworkParameterFileName : fileName, kNetworkParamaterFileSize : [NSNumber numberWithUnsignedInt:[fileData length]]};
-            
-            // QUEUE NOW: [fileNetworkRequest] ... [other requests]
-            // activeRequest == fileNetworkRequest ** this means our observer WILL NOT process the queue as we modify it
-            
-            RazNetworkRequest * fileMetaDataNetworkRequest = [[RazNetworkRequest alloc] initWithRazNetworkRequestType:RazNetworkRequestTypeFileMetaDataCommand paramaterDictionary:fileMetaDataParamDictionary andConnection:self];
-            [self addRequest:fileMetaDataNetworkRequest atIndex:0];
-            
-            RazNetworkRequest * fileDataNetworkRequest = [[RazNetworkRequest alloc] initWithRazNetworkRequestType:RazNetworkRequestTypeFileData paramaterDictionary:fileDataParamDictionary andConnection:self];
-            [self addRequest:fileDataNetworkRequest atIndex:1];
-            
-            // QUEUE NOW: [fileMetaDataNetworkRequest][fileDataNetworkRequest][fileNetworkRequest]....[other requests]
-            
-            // this sets the activeNetwork to nil and removes us from the queue,
-            // which will set off the observer and process the queue accordingly
-            [networkRequest requestCompletedSuccessfully:YES];
-            
-            // activeRequest == nil ** this means our observer WILL process the queue
-            // QUEUE NOW: [fileMetaDataNetworkRequest][fileDataNetworkRequest]....[other requests]
-        } break;
-        case RazNetworkRequestTypeFileMetaDataCommand: {
-            NSString *     fileName = [paramDictionary objectForKey:kNetworkParameterFileName];
-            NSNumber *     fileSize = [paramDictionary objectForKey:kNetworkParamaterFileSize];
-            
-            [networkRequest requestCompletedSuccessfully:[self sendFileMetaDataCommandWithFileName:fileName andFileSize:fileSize.integerValue]];
-        } break;
-        case RazNetworkRequestTypeFileData: {
-            NSData *    fileData = [paramDictionary objectForKey:kNetworkParamaterFileData];
-            
-            [self sendData:fileData];
-        } break;
-        case RazNetworkRequestTypeConfirmationOfFileTransferCommand: {
-            NSString * fileName = [paramDictionary objectForKey:kNetworkParameterFileName];
-            [networkRequest requestCompletedSuccessfully:[self sendComfirmationOfFileTransferWithName:fileName]];
-        } break;
-        case RazNetworkRequestTypePlayMusicCommand: {
-            NSString * fileName = [paramDictionary objectForKey:kNetworkParameterFileName];
-            [networkRequest requestCompletedSuccessfully:[self sendPlaySongCommandWithName:fileName]];
-        } break;
-        default: {
-            NSLog(@"attempted to send an unknown request type");
-        } break;
-    }    
+    // implemented by subclass
 }
 
 - (void) sendData:(NSData *)data {
@@ -370,9 +254,10 @@
     
     if([self.outputStream hasSpaceAvailable]){
         [self stream:self.outputStream handleEvent:NSStreamEventHasSpaceAvailable];
-        NSLog(@"sending %lu bytes to %@", (unsigned long)[self.outputData length], self.connectionName ? self.connectionName : @"unregistered client");
+        NSLog(@"sending %lu bytes to %@", (unsigned long)[self.outputData length], self.connectionName ? self.connectionName : @"unregistered");
     } else {
-        //TODO: handle case where output stream doesn't have available space
+        //we set the output data, so as soon as we get the stream delegate call telling us the output queue has space,
+        //our method will take care of the rest
     }
 }
 
@@ -456,30 +341,9 @@
     [self processNetworkQueue];
 }
 
-- (void) sendFile:(NSData*)fileData withName:(NSString*)fileName {
-    [self sendFileMetaDataCommandWithFileName:fileName andFileSize:(unsigned long)[fileData length]];
-    [self sendData:fileData];
-}
 
-- (BOOL) sendNickNameCommand {
-    NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@", kSocketMessageStartDelimiter, kCommandClientNickName, kCommandDelimiter, [[NSUserDefaults standardUserDefaults] valueForKey:kUserDefaultsClientNickName], kSocketMessageEndDelimiter];
-    return [self sendCommandWithString:msgToSend];
-}
 
-- (BOOL) sendFileMetaDataCommandWithFileName:(NSString*)fileName andFileSize:(NSInteger)fileSize {
-    NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@%@%@%ld%@", kSocketMessageStartDelimiter, kCommandFileName, kCommandDelimiter, fileName, kCommandDelimiter ,kCommandFileSize, kCommandDelimiter, (long)fileSize, kSocketMessageEndDelimiter];
-    return [self sendCommandWithString:msgToSend];
-}
 
-- (BOOL) sendComfirmationOfFileTransferWithName:(NSString*)fileName {
-    NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@", kSocketMessageStartDelimiter, kCommandFileTransferCompleted, kCommandDelimiter, fileName, kSocketMessageEndDelimiter];
-    return [self sendCommandWithString:msgToSend];
-}
-
-- (BOOL) sendPlaySongCommandWithName:(NSString*)songName {
-    NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@", kSocketMessageStartDelimiter, kCommandPlaySong, kCommandDelimiter, songName, kSocketMessageEndDelimiter];
-    return [self sendCommandWithString:msgToSend];
-}
 
 #pragma mark - queue processing
 

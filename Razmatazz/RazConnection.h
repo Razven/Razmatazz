@@ -7,8 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-
-@class RazNetworkRequest;
+#import "RazNetworkRequest.h"
 
 @protocol RazConnectionDelegate <NSObject>
 
@@ -41,5 +40,35 @@ typedef enum {
 - (void) retryActiveRequest;
 - (void) retryRequestLater:(RazNetworkRequest*) networkRequest;
 - (void) cancelSongRequests;
+
+@end
+
+//for subclassing
+@interface RazConnection() <NSStreamDelegate>
+
+@property (nonatomic, strong, readwrite) NSInputStream *        inputStream;
+@property (nonatomic, strong, readwrite) NSOutputStream *       outputStream;
+
+@property (nonatomic, assign) BOOL                              inputStreamOpened, outputStreamOpened;
+@property (nonatomic, assign) BOOL                              isFileTransferInProgress;
+
+@property (nonatomic, assign) NSInteger                         fileSize;
+@property (nonatomic, strong) NSString *                        fileName;
+
+@property (nonatomic, strong) NSMutableData *                   inputData;
+@property (nonatomic, strong) NSMutableData *                   outputData;
+@property (nonatomic, assign) NSUInteger                        readBytes;
+@property (nonatomic, assign) NSUInteger                        byteIndex;
+
+@property (nonatomic, strong) NSMutableArray *                  requestQueue;
+@property (nonatomic, weak) RazNetworkRequest *                 activeRequest;
+
+@property (nonatomic, assign) int                               inputBufferLength;
+
+- (void) addRequest:(RazNetworkRequest*) networkRequest atIndex:(NSInteger)index;
+- (void) addRequest:(RazNetworkRequest *)networkRequest;
+- (void) removeRequest:(RazNetworkRequest*) networkRequest;
+- (BOOL) sendCommandWithString:(NSString*) command;
+- (void) sendData:(NSData*)data;
 
 @end
