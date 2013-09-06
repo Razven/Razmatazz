@@ -9,7 +9,7 @@
 #import "JoinPartyViewController.h"
 #import <QuartzCore/QuartzCore.h>
 #import "RazInfoPopupView.h"
-#import "RazConnection.h"
+#import "RazServerConnection.h"
 #import "AppDelegate.h"
 #import "RazConnectionManager.h"
 #import "PartyRoomViewController.h"
@@ -129,8 +129,9 @@
 
 - (void)start {    
     self.browser = [[NSNetServiceBrowser alloc] init];
+    [self.browser scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
     [self.browser setDelegate:self];
-    [self.browser searchForServicesOfType:self.type inDomain:@"local"];
+    [self.browser searchForServicesOfType:self.type inDomain:@""];
 }
 
 - (void)stop {
@@ -338,6 +339,7 @@
 
 - (void)netServiceBrowser:(NSNetServiceBrowser *)browser didFindService:(NSNetService *)service moreComing:(BOOL)moreComing {    
     [self.services addObject:service];
+    NSLog(@"Found service");
     
     if (!moreComing) {
         [self sortAndReloadTable];
@@ -371,10 +373,9 @@
         outStream = nil;
         
     } else {
-        RazConnection* connection = [[RazConnection alloc] initWithInputStream:inStream andOutputStream:outStream];
+        RazServerConnection* connection = [[RazServerConnection alloc] initWithInputStream:inStream andOutputStream:outStream];
         [connection setConnectionName:service.name];
         [connection openAllStreams];
-        [connection setConnectionType:RazConnectionTypeServer];
         [[(AppDelegate*)[UIApplication sharedApplication].delegate sharedRazConnectionManager] setServerConnection:connection];
     }
 }

@@ -19,6 +19,9 @@
             self.connectionName = [commands objectAtIndex:i + 1];
             NSLog(@"received nick name command: %@", self.connectionName);
             [[NSNotificationCenter defaultCenter] postNotificationName:kClientRegisteredNotification object:self];
+        } else if([command isEqualToString:kCommandFileTransferCompleted]){
+            NSLog(@"client successfully received song");
+            [[NSNotificationCenter defaultCenter] postNotificationName:kFileTransferCompletedNotification object:nil];
         }
         else {
             NSLog(@"Unrecognized command: %@", command);

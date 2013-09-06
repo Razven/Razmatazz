@@ -7,7 +7,8 @@
 //
 
 #import "RazConnectionManager.h"
-#import "RazConnection.h"
+#import "RazServerConnection.h"
+#import "RazClientConnection.h"
 #import "QServer.h"
 #import "RazNetworkRequest.h"
 
@@ -16,7 +17,7 @@
 @property (nonatomic, strong, readwrite) QServer *              server;
 @property (nonatomic, assign, readwrite) NSUInteger             streamOpenCount;
 @property (nonatomic, strong)            NSMutableArray *       connectionsArray;
-@property (nonatomic, strong)            RazConnection *        serverConnection;
+@property (nonatomic, strong)            RazServerConnection *  serverConnection;
 
 @end
 
@@ -26,12 +27,9 @@
     self = [super init];
     
     if(self) {
-        self.server = [[QServer alloc] initWithDomain:@"local" type:kRazmatazzBonjourType name:nil preferredPort:44444];
-        [self.server setDelegate:self];
-        
+        self.server = [[QServer alloc] initWithDomain:@"" type:kRazmatazzBonjourType name:nil preferredPort:44444];
+        [self.server setDelegate:self];        
         self.connectionsArray = [NSMutableArray array];
-        
-        self.serverConnection = nil;
     }
     
     return self;
@@ -44,7 +42,7 @@
 - (NSArray *)getArrayOfClientNames {
     NSMutableArray * names = [NSMutableArray arrayWithCapacity:[self.connectionsArray count]];
     
-    for(RazConnection * client in self.connectionsArray){
+    for(RazClientConnection * client in self.connectionsArray){
         if(client.connectionName){
             [names addObject:client.connectionName];
         }
@@ -177,10 +175,9 @@
 - (id)server:(QServer *)server connectionForInputStream:(NSInputStream *)inputStream outputStream:(NSOutputStream *)outputStream {
     id  result;
     
-    RazConnection *connection = [[RazConnection alloc] initWithInputStream:inputStream andOutputStream:outputStream];
+    RazClientConnection *connection = [[RazClientConnection alloc] initWithInputStream:inputStream andOutputStream:outputStream];
     [connection setDelegate:self];
     [connection openAllStreams];
-    [connection setConnectionType:RazConnectionTypeClient];
     
     [self.connectionsArray addObject:connection];
     result  = connection;

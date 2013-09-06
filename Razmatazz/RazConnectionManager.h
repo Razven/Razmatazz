@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@class RazConnection;
+@class RazServerConnection;
 
 @interface RazConnectionManager : NSObject
 
@@ -26,7 +26,7 @@
 - (void) cancelSongBroadcast;
 - (void) sendPlayMusicRequestWithSongName:(NSString*)songName;
 
-- (void) setServerConnection:(RazConnection*)serverConnection;
+- (void) setServerConnection:(RazServerConnection*)serverConnection;
 
 - (void) registerServerWithName:(NSString*)name;
 

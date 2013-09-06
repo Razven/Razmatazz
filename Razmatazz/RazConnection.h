@@ -25,14 +25,11 @@ typedef enum {
 
 @property (nonatomic, strong) id<RazConnectionDelegate>         delegate;
 @property (nonatomic, strong) NSString *                        connectionName;
-@property (nonatomic, assign) RazConnectionType                 connectionType;
 
 - (id) initWithInputStream:(NSInputStream*)inputStream andOutputStream:(NSOutputStream*)outputStream;
 
 - (void) closeAllStreams;
 - (void) openAllStreams;
-
-- (void) sendFile:(NSData*)fileData withName:(NSString*)fileName;
 
 - (void) addRequest:(RazNetworkRequest*)networkRequest;
 - (void) removeRequest:(RazNetworkRequest*)networkRequest;

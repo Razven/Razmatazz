@@ -238,7 +238,7 @@
 - (void)transferSongToDoumentsDirectoryWithSongIndex:(NSIndexPath*)songIndex {
     [self updateStatus:@"exporting song"];
     
-    if(self.numberOfClientsToReceiveSong > 0){
+    if([self.razConnectionManager getNumberOfActiveClients] > 0){
         [self showFileTransferPopup];
     }
     
