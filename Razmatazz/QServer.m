@@ -639,6 +639,7 @@ static void ListeningSocketCallback(CFSocketRef sock, CFSocketCallBackType type,
         [self.netService scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:mode];
     }
     [self.netService setDelegate:self];
+    [self.netService resolveWithTimeout:0.0];
     [self.netService publishWithOptions:0];
 }
 

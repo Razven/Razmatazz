@@ -28,8 +28,10 @@
 #define kFileTransferCompletedNotification      @"FileTransferCompletedNotification"
 #define kPlaySongNotification                   @"playSongNotification"
 
-#define kSocketMessageStartDelimiter            @"razmatazz1597534862"
-#define kSocketMessageEndDelimiter              @"7539512684razmatazz"
+#define kSocketMessageStartTextDelimiter        @"razmatazz1597534862"
+#define kSocketMessageEndTextDelimiter          @"7539512684razmatazz"
+#define kSocketMessageStartBytesDelimiter       [kSocketMessageStartTextDelimiter UTF8String]
+#define kSocketMessageEndBytesDelimiter         [kSocketMessageEndTextDelimiter UTF8String]
 
 #define kUserDefaultsClientNickName             @"clientNickName"
 

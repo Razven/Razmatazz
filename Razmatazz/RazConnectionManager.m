@@ -28,7 +28,7 @@
     
     if(self) {
         self.server = [[QServer alloc] initWithDomain:@"" type:kRazmatazzBonjourType name:nil preferredPort:44444];
-        [self.server setDelegate:self];        
+        [self.server setDelegate:self];
         self.connectionsArray = [NSMutableArray array];
     }
     
@@ -79,7 +79,7 @@
 }
 
 - (void) closeStreamsAndEmptyConnectionsArray {
-    for(RazConnection* connection in self.connectionsArray){
+    for(RazClientConnection* connection in self.connectionsArray){
         [connection closeAllStreams];
     }
     
@@ -111,24 +111,27 @@
     NSString *  path =      [songPath path];
     NSData *    songData =  [[NSFileManager defaultManager] contentsAtPath:path];
     
+    NSLog(@"first 20 bytes sent: %@", [songData subdataWithRange:(NSRange){0,20}]);
+    NSLog(@"last 20 bytes sent: %@", [songData subdataWithRange:(NSRange){(unsigned long)[songData length] - 20,20}]);
+    
     NSDictionary * fileParamDictionary = @{kNetworkParameterFileName : [path lastPathComponent], kNetworkParamaterFileData : songData};
     
     if(songData && [songData length] > 0){
-        for(RazConnection * client in self.connectionsArray){
-            RazNetworkRequest * fileNetworkRequest = [[RazNetworkRequest alloc] initWithRazNetworkRequestType:RaznetworkRequestTypeFile paramaterDictionary:fileParamDictionary andConnection:client];
-            [client addRequest:fileNetworkRequest];
+        for(RazClientConnection * client in self.connectionsArray){
+                RazNetworkRequest * fileNetworkRequest = [[RazNetworkRequest alloc] initWithRazNetworkRequestType:RaznetworkRequestTypeFile paramaterDictionary:fileParamDictionary andConnection:client];
+                [client addRequest:fileNetworkRequest];
         }
     }
 }
 
 - (void) cancelSongBroadcast {
-    for(RazConnection * client in self.connectionsArray){
+    for(RazClientConnection * client in self.connectionsArray){
         [client cancelSongRequests];
     }
 }
 
 - (void) sendPlayMusicRequestWithSongName:(NSString*)songName {
-    for(RazConnection * client in self.connectionsArray){
+    for(RazClientConnection * client in self.connectionsArray){
         NSDictionary * paramDict = @{kNetworkParameterFileName : songName};
         RazNetworkRequest * fileNetworkRequest = [[RazNetworkRequest alloc] initWithRazNetworkRequestType:RazNetworkRequestTypePlayMusicCommand paramaterDictionary:paramDict andConnection:client];
         [client addRequest:fileNetworkRequest];
@@ -143,13 +146,13 @@
 
 - (void)openClientStreams
 {
-    for(RazConnection* connection in self.connectionsArray){
+    for(RazClientConnection* connection in self.connectionsArray){
         [connection openAllStreams];
     }
 }
 
 - (void)closeClientStreams {
-    for(RazConnection* connection in self.connectionsArray){
+    for(RazClientConnection* connection in self.connectionsArray){
         [connection closeAllStreams];
     }
 }
@@ -187,7 +190,7 @@
 }
 
 - (void)server:(QServer *)server closeConnection:(id)connection {
-    [(RazConnection*)connection closeAllStreams];
+    [(RazClientConnection*)connection closeAllStreams];
     [self.connectionsArray removeObject:connection];
 }
 

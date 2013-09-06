@@ -79,12 +79,12 @@
 }
 
 - (BOOL) sendNickNameCommand {
-    NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@", kSocketMessageStartDelimiter, kCommandClientNickName, kCommandDelimiter, [[NSUserDefaults standardUserDefaults] valueForKey:kUserDefaultsClientNickName], kSocketMessageEndDelimiter];
+    NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@", kSocketMessageStartTextDelimiter, kCommandClientNickName, kCommandDelimiter, [[NSUserDefaults standardUserDefaults] valueForKey:kUserDefaultsClientNickName], kSocketMessageEndTextDelimiter];
     return [self sendCommandWithString:msgToSend];
 }
 
 - (BOOL) sendComfirmationOfFileTransferWithName:(NSString*)fileName {
-    NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@", kSocketMessageStartDelimiter, kCommandFileTransferCompleted, kCommandDelimiter, fileName, kSocketMessageEndDelimiter];
+    NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@", kSocketMessageStartTextDelimiter, kCommandFileTransferCompleted, kCommandDelimiter, fileName, kSocketMessageEndTextDelimiter];
     return [self sendCommandWithString:msgToSend];
 }
 

@@ -71,8 +71,7 @@
         } break;
         case RazNetworkRequestTypeFileMetaDataCommand: {
             NSString *     fileName = [paramDictionary objectForKey:kNetworkParameterFileName];
-            NSNumber *     fileSize = [paramDictionary objectForKey:kNetworkParamaterFileSize];
-            
+            NSNumber *     fileSize = [paramDictionary objectForKey:kNetworkParamaterFileSize];            
             [networkRequest requestCompletedSuccessfully:[self sendFileMetaDataCommandWithFileName:fileName andFileSize:fileSize.integerValue]];
         } break;
         case RazNetworkRequestTypeFileData: {
@@ -90,12 +89,12 @@
 }
 
 - (BOOL) sendFileMetaDataCommandWithFileName:(NSString*)fileName andFileSize:(NSInteger)fileSize {
-    NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@%@%@%ld%@", kSocketMessageStartDelimiter, kCommandFileName, kCommandDelimiter, fileName, kCommandDelimiter ,kCommandFileSize, kCommandDelimiter, (long)fileSize, kSocketMessageEndDelimiter];
+    NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@%@%@%ld%@", kSocketMessageStartTextDelimiter, kCommandFileName, kCommandDelimiter, fileName, kCommandDelimiter ,kCommandFileSize, kCommandDelimiter, (long)fileSize, kSocketMessageEndTextDelimiter];
     return [self sendCommandWithString:msgToSend];
 }
 
 - (BOOL) sendPlaySongCommandWithName:(NSString*)songName {
-    NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@", kSocketMessageStartDelimiter, kCommandPlaySong, kCommandDelimiter, songName, kSocketMessageEndDelimiter];
+    NSString * msgToSend = [NSString stringWithFormat:@"%@%@%@%@%@", kSocketMessageStartTextDelimiter, kCommandPlaySong, kCommandDelimiter, songName, kSocketMessageEndTextDelimiter];
     return [self sendCommandWithString:msgToSend];
 }
 

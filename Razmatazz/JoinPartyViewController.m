@@ -382,7 +382,7 @@
 
 - (void) connectedToServer:(NSNotification*)notification {
     [self hideConnectViewWithCompletionBlock:^{
-        PartyRoomViewController * prvc = [[PartyRoomViewController alloc] initWithPartyName:[(RazConnection*)notification.object connectionName]];
+        PartyRoomViewController * prvc = [[PartyRoomViewController alloc] initWithPartyName:[(RazServerConnection*)notification.object connectionName]];
         [self.navigationController pushViewController:prvc animated:YES];
     }];
 }

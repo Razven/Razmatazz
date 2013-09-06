@@ -108,7 +108,7 @@
                 [self.inputData appendBytes:buffer length:bytesRead];
                 if(!self.isFileTransferInProgress){
                     //TODO: this is kinda heavy too
-                    NSUInteger indexOfEnd = [self indexOfDelimiter:kSocketMessageEndDelimiter inData:[[NSString alloc] initWithData:self.inputData encoding:NSUTF8StringEncoding]];
+                    NSUInteger indexOfEnd = [self indexOfDelimiter:kSocketMessageEndTextDelimiter inData:self.inputData];
                     NSLog(@"Read %lu bytes of data", (unsigned long)[self.inputData length]);
                     //we reached the end of the message
                     if(indexOfEnd != NSNotFound){
@@ -134,6 +134,11 @@
         default:
         case NSStreamEventErrorOccurred: {
             NSLog(@"Error occured connecting: %@", [stream streamError]);
+            
+            [self closeAllStreams];
+            if(self.delegate && [self.delegate respondsToSelector:@selector(connectionDidClose:)]){
+                [self.delegate connectionDidClose:self];
+            }
         } break;
         case NSStreamEventEndEncountered: {
             NSLog(@"Stream end encountered");
@@ -169,30 +174,30 @@
 }
 
 //TODO: this whole function is heavy and needs revision
-- (void) parseInputData {
-    
+- (void) parseInputData {    
     BOOL missingPartOfMessage = NO;
     
-    if([self.inputData length] < kSocketMessageStartDelimiter.length + kSocketMessageEndDelimiter.length){
+    if([self.inputData length] < kSocketMessageStartTextDelimiter.length + kSocketMessageEndTextDelimiter.length){
         NSLog(@"inputData too short to parse");
         return;
     }
     
     NSMutableString * fullMessage = [[self getNSStringFromCommandBytes:[self.inputData bytes]] mutableCopy];
     NSLog(@"full message: %@", fullMessage);
-    NSInteger startIndex = [fullMessage rangeOfString:kSocketMessageStartDelimiter].location;
+    NSInteger startIndex = [fullMessage rangeOfString:kSocketMessageStartTextDelimiter].location;
     NSInteger endIndex = 0;
     
-    NSArray * startDelimiterSplit = [fullMessage componentsSeparatedByString:kSocketMessageStartDelimiter];
+    NSArray * startDelimiterSplit = [fullMessage componentsSeparatedByString:kSocketMessageStartTextDelimiter];
     
     for(int i = 1; i < [startDelimiterSplit count]; i++){
-        NSArray * endDelimiterSplit = [[startDelimiterSplit objectAtIndex:i] componentsSeparatedByString:kSocketMessageEndDelimiter];
+        NSArray * endDelimiterSplit = [[startDelimiterSplit objectAtIndex:i] componentsSeparatedByString:kSocketMessageEndTextDelimiter];
         if(i == [startDelimiterSplit count] - 1){
-            NSInteger localEndIndex = [[startDelimiterSplit objectAtIndex:i] rangeOfString:kSocketMessageEndDelimiter].location;
+            NSInteger localEndIndex = [[startDelimiterSplit objectAtIndex:i] rangeOfString:kSocketMessageEndTextDelimiter].location;
             
             //the data would have to look something like: name:Razzle Dazzle7539512684razmat
             //notice the end delimiter is cut off, we haven't read it all yet
             if(localEndIndex == NSNotFound){
+                missingPartOfMessage = YES;
                 break;
             }
             
@@ -210,10 +215,11 @@
         }
     }
     
-    endIndex += startIndex + kSocketMessageStartDelimiter.length;
+    //we need to add in the length of all the start delimiters
+    endIndex += startIndex + (kSocketMessageStartTextDelimiter.length * ([startDelimiterSplit count] - 1));
     
     // if part of message is missing (only possible case is the end) then keep the start delimiter as part of the message so we can parse everything again when we get the full end
-    NSRange processedRange = {missingPartOfMessage ? startIndex + kSocketMessageStartDelimiter.length : startIndex, endIndex + kSocketMessageEndDelimiter.length - startIndex};
+    NSRange processedRange = {missingPartOfMessage ? startIndex + kSocketMessageStartTextDelimiter.length : startIndex, endIndex + kSocketMessageEndTextDelimiter.length - startIndex};
     [self.inputData replaceBytesInRange:processedRange withBytes:NULL length:0];
 }
 
@@ -221,7 +227,14 @@
     NSData * fileData = [self.inputData subdataWithRange:(NSRange){0, self.fileSize}];
     NSString * filePath = [APPLICATION_SONGS_DIRECTORY stringByAppendingPathComponent:self.fileName];
     
-    BOOL fileSaved = [fileData writeToFile:filePath atomically:YES];
+    NSLog(@"File data received: %@", fileData);
+    
+    BOOL fileSaved;
+    NSError * error;
+    fileSaved = [fileData writeToFile:filePath options:NSDataWritingAtomic error:&error];
+    
+    NSLog(@"first 20 bytes received: %@", [fileData subdataWithRange:(NSRange){0,20}]);
+    NSLog(@"last 20 bytes received: %@", [fileData subdataWithRange:(NSRange){(unsigned long)[fileData length] - 20,20}]);
     
     if(!fileSaved){
         //TODO: file didn't save, do something
@@ -234,13 +247,41 @@
         self.fileName = nil;
         self.fileSize = 0;
         self.isFileTransferInProgress = NO;
+        
+        if([self indexOfDelimiter:kSocketMessageEndTextDelimiter inData:self.inputData] != NSNotFound){
+            [self parseInputData];
+        }
+        
+        
     }
 }
 
-- (NSUInteger)indexOfDelimiter:(NSString*)delimiter inData:(NSString*)data {
-    NSRange range = [data rangeOfString:delimiter];
-    
-    return range.location;
+//TODO: implement a 'startindex' so we don't have to start from the beginning of the chunk of data each time. This is very heavy.
+- (NSUInteger)indexOfDelimiter:(NSString*)delimiter inData:(NSData*)data {
+    if((unsigned long)[data length] < [delimiter length]){ // the length of our delimiter is longer than that of our data
+                                                           // there's no way the delimiter can be found in the data.
+        return NSNotFound;
+    } else {
+        const char* delimiterBytes = [delimiter UTF8String];
+        const char* dataBytes = [data bytes];
+        int numMatching;
+        
+        for(int i = 0; i < (unsigned long)[data length]; i++){
+            numMatching = 0;
+            for(int j = 0; j < [delimiter length]; j++){
+                if(delimiterBytes[j] == dataBytes[j + i]){
+                    numMatching++;
+                }
+            }
+            
+            if(numMatching == [delimiter length]){ // match found at index i
+                return i;
+            }
+        }
+        
+        //looped through everything, match not found
+        return NSNotFound;
+    }
 }
 
 #pragma mark - network request section

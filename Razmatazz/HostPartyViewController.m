@@ -119,11 +119,11 @@
     [self.songTransferProgressPopup.infoLabel setText:@"Broadcasting song to everyone in your party"];
     [self.songTransferProgressPopup.actionButton setTitle:@"Cancel" forState:UIControlStateNormal];
     [self.songTransferProgressPopup.actionButton setTitle:@"Cancel" forState:UIControlStateHighlighted];
-    [self.songTransferProgressPopup.actionButton addTarget:self action:@selector(hideFileTransferPopup) forControlEvents:UIControlEventTouchUpInside];
+    [self.songTransferProgressPopup.actionButton addTarget:self action:@selector(cancelSongRequest) forControlEvents:UIControlEventTouchUpInside];
     
     self.songTransferProgressView.center = CGPointMake(CGRectGetMidX(self.songTransferProgressPopup.bounds), CGRectGetMidY(self.songTransferProgressPopup.bounds) - 17);
     [self.songTransferProgressView setTrackTintColor:[UIColor whiteColor]];
-    [self.songTransferProgressView setProgressTintColor:[UIColor darkGrayColor]];
+    [self.songTransferProgressView setProgressTintColor:[UIColor cyanColor]];
     [self.songTransferProgressPopup setActivityView:self.songTransferProgressView];
     
     self.view.backgroundColor = [UIColor lightGrayColor];
@@ -210,6 +210,7 @@
     // https://www.google.ca/search?q=ios+xcode+copy+song+from+ipod+to+app+directory&oq=ios+xcode+copy+song+from+ipod+to+app+directory&aqs=chrome..69i57.5915j0&sourceid=chrome&ie=UTF-8
     
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    [self.playMusicBarButton setEnabled:NO];
     
     [self transferSongToDoumentsDirectoryWithSongIndex:indexPath];
     self.selectedSongIndex = indexPath;
@@ -236,7 +237,7 @@
 #pragma mark - Music copying methods
 
 - (void)transferSongToDoumentsDirectoryWithSongIndex:(NSIndexPath*)songIndex {
-    [self updateStatus:@"exporting song"];
+    [self updateStatus:@"exporting song"];   
     
     if([self.razConnectionManager getNumberOfActiveClients] > 0){
         [self showFileTransferPopup];
@@ -263,6 +264,8 @@
     
     NSURL* exportURL = [NSURL fileURLWithPath:exportFile];
     exporter.outputURL = exportURL;
+    
+     NSLog(@"exporting song :%@", songTitle);
     
     [exporter exportAsynchronouslyWithCompletionHandler:^{        	
         [self updateStatus:@"song exported"];
@@ -308,6 +311,7 @@
 
 - (void) cancelSongRequest {
     [self.razConnectionManager cancelSongBroadcast];
+    [self hideFileTransferPopupAndResetVariables];
 }
 
 #pragma mark - BarButtonItem selectors
@@ -334,12 +338,16 @@
     [self updateProgress];
     
     if(self.numberOfClientsWhoSuccessfullyReceivedSong == self.numberOfClientsToReceiveSong){
-        [self hideFileTransferPopup];
-        self.numberOfClientsToReceiveSong = 0;
-        self.numberOfClientsWhoSuccessfullyReceivedSong = 0;
-        [self.songTransferProgressView setProgress:0];
-        [self.playMusicBarButton setEnabled:YES];
+        [self hideFileTransferPopupAndResetVariables];
     }
+}
+
+- (void) hideFileTransferPopupAndResetVariables {
+    [self hideFileTransferPopup];
+    self.numberOfClientsToReceiveSong = 0;
+    self.numberOfClientsWhoSuccessfullyReceivedSong = 0;
+    [self.songTransferProgressView setProgress:0];
+    [self.playMusicBarButton setEnabled:YES];
 }
 
 - (void) updateProgress {
