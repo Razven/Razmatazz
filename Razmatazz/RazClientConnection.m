@@ -40,6 +40,7 @@
 
 - (void) performRequest:(RazNetworkRequest*)networkRequest {
     self.activeRequest = networkRequest;
+    [self.activeRequest requestIsNowActive];
     
     NSDictionary * paramDictionary = [networkRequest getParameterDictionary];
     

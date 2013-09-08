@@ -111,9 +111,6 @@
     NSString *  path =      [songPath path];
     NSData *    songData =  [[NSFileManager defaultManager] contentsAtPath:path];
     
-    NSLog(@"first 20 bytes sent: %@", [songData subdataWithRange:(NSRange){0,20}]);
-    NSLog(@"last 20 bytes sent: %@", [songData subdataWithRange:(NSRange){(unsigned long)[songData length] - 20,20}]);
-    
     NSDictionary * fileParamDictionary = @{kNetworkParameterFileName : [path lastPathComponent], kNetworkParamaterFileData : songData};
     
     if(songData && [songData length] > 0){

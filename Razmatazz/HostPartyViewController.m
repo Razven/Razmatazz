@@ -265,7 +265,7 @@
     NSURL* exportURL = [NSURL fileURLWithPath:exportFile];
     exporter.outputURL = exportURL;
     
-     NSLog(@"exporting song :%@", songTitle);
+     NSLog(@"exporting song: %@", songTitle);
     
     [exporter exportAsynchronouslyWithCompletionHandler:^{        	
         [self updateStatus:@"song exported"];

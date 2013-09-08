@@ -67,7 +67,7 @@
 }
 
 - (void) requestIsNowActive {
-    self.timeoutTimer = [NSTimer timerWithTimeInterval:5 target:self selector:@selector(requestFailed) userInfo:nil repeats:NO];
+    self.timeoutTimer = [NSTimer timerWithTimeInterval:45 target:self selector:@selector(requestFailed) userInfo:nil repeats:NO];
 }
 
 - (void) requestSucceeded {

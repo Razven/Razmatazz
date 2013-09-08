@@ -71,61 +71,69 @@
         } break;
 
         case NSStreamEventHasSpaceAvailable: {
-            if(self.activeRequest && self.outputData){
-                uint8_t *readBytes = (uint8_t *)[self.outputData mutableBytes];
-                readBytes += self.byteIndex; // instance variable to move pointer
-                int data_len = [self.outputData length];
-                unsigned int len = ((data_len - self.byteIndex >= 1024) ?
-                                    1024 : (data_len - self.byteIndex));
-                uint8_t buf[len];
-                (void)memcpy(buf, readBytes, len);
-                len = [self.outputStream write:(const uint8_t *)buf maxLength:len];
-                self.byteIndex += len;
-                if(self.byteIndex == data_len){
-                    self.outputData = nil;
-                    self.byteIndex = 0;
-                    [self.activeRequest requestCompletedSuccessfully:YES];
-                    
-                    //TODO: inform other parts of the app that we successfully sent the file through
-                    // when implementing the output queue, this would be a good time to inform the activeOutputRequest
-                    // that it completed successfully
+            if(stream == self.outputStream){
+                if(self.activeRequest && self.outputData){
+                    uint8_t *readBytes = (uint8_t *)[self.outputData mutableBytes];
+                    readBytes += self.byteIndex; // instance variable to move pointer
+                    int data_len = [self.outputData length];
+                    unsigned int len = ((data_len - self.byteIndex >= 1024) ?
+                                        1024 : (data_len - self.byteIndex));
+                    uint8_t buf[len];
+                    (void)memcpy(buf, readBytes, len);
+                    len = [self.outputStream write:(const uint8_t *)buf maxLength:len];
+                    self.byteIndex += len;
+                    if(self.byteIndex == data_len){
+                        
+                        NSLog(@"finished sending %lu bytes", (unsigned long)self.byteIndex);
+                        self.outputData = nil;
+                        self.byteIndex = 0;
+                        [self.activeRequest requestCompletedSuccessfully:YES];
+                        
+                        //TODO: inform other parts of the app that we successfully sent the file through
+                        // when implementing the output queue, this would be a good time to inform the activeOutputRequest
+                        // that it completed successfully
+                    }
+                } else if(!self.activeRequest){
+                    [self processNetworkQueue];
                 }
-            } else if(!self.activeRequest){
-                [self processNetworkQueue];
             }
         } break;
             
         case NSStreamEventHasBytesAvailable: {
-            // TODO: implement dynamic buffer length based on state of connection
-            // i.e if we're expecting a file, increase size of buffer,
-            // if we're expecting a command, a smaller buffer will suffice
-            // this is to reduce the work done when attempting to parse input for commands
-            uint8_t     buffer[self.inputBufferLength];
-            NSInteger   bytesRead;
-            bytesRead = [self.inputStream read:buffer maxLength:sizeof(buffer)];
-            
-            if (bytesRead > 0) {
-                [self.inputData appendBytes:buffer length:bytesRead];
-                if(!self.isFileTransferInProgress){
-                    //TODO: this is kinda heavy too
-                    NSUInteger indexOfEnd = [self indexOfDelimiter:kSocketMessageEndTextDelimiter inData:self.inputData];
-                    NSLog(@"Read %lu bytes of data", (unsigned long)[self.inputData length]);
-                    //we reached the end of the message
-                    if(indexOfEnd != NSNotFound){
-                        [self parseInputData];
-                    }
-                } else {
-                    if([self.inputData length] >= self.fileSize){
-                        NSLog(@"Read %lu bytes of data", (unsigned long)[self.inputData length]);
-                        //TODO: implement incoming network queue and tell the activerequest it's finished which will trigger this
-                        //rather than doing it manually
+            if(stream == self.inputStream){
+                // TODO: implement dynamic buffer length based on state of connection
+                // i.e if we're expecting a file, increase size of buffer,
+                // if we're expecting a command, a smaller buffer will suffice
+                // this is to reduce the work done when attempting to parse input for commands
+                uint8_t     buffer[self.inputBufferLength];
+                NSInteger   bytesRead;
+                bytesRead = [self.inputStream read:buffer maxLength:self.inputBufferLength];
+                
+                if (bytesRead > 0) {
+                    [self.inputData appendBytes:buffer length:bytesRead];
+                    if(!self.isFileTransferInProgress){
+                        NSLog(@"Received %lu byte long message", (unsigned long)[self.inputData length]);
                         
-                        NSDictionary * paramDictionary = @{kNetworkParameterFileName : self.fileName};
-                        RazNetworkRequest* confirmationOfFileTransferRequest = [[RazNetworkRequest alloc] initWithRazNetworkRequestType:RazNetworkRequestTypeConfirmationOfFileTransferCommand paramaterDictionary:paramDictionary andConnection:self];
-                        [self addRequest:confirmationOfFileTransferRequest];
+                        //TODO: this is kinda heavy too
+                        NSUInteger indexOfEnd = [self indexOfDelimiter:kSocketMessageEndTextDelimiter inData:self.inputData];
                         
-                        // file transfer complete
-                        [self processFileData];
+                        //we reached the end of the message
+                        if(indexOfEnd != NSNotFound){
+                            [self parseInputData];
+                        }
+                    } else {
+                        if([self.inputData length] >= self.fileSize){
+                            NSLog(@"Received %lu byte long file", (long)self.fileSize);
+                            //TODO: implement incoming network queue and tell the activerequest it's finished which will trigger this
+                            //rather than doing it manually
+                            
+                            NSDictionary * paramDictionary = @{kNetworkParameterFileName : self.fileName};
+                            RazNetworkRequest* confirmationOfFileTransferRequest = [[RazNetworkRequest alloc] initWithRazNetworkRequestType:RazNetworkRequestTypeConfirmationOfFileTransferCommand paramaterDictionary:paramDictionary andConnection:self];
+                            [self addRequest:confirmationOfFileTransferRequest];
+                            
+                            // file transfer complete
+                            [self processFileData];
+                        }
                     }
                 }
             }
@@ -232,9 +240,6 @@
     BOOL fileSaved;
     NSError * error;
     fileSaved = [fileData writeToFile:filePath options:NSDataWritingAtomic error:&error];
-    
-    NSLog(@"first 20 bytes received: %@", [fileData subdataWithRange:(NSRange){0,20}]);
-    NSLog(@"last 20 bytes received: %@", [fileData subdataWithRange:(NSRange){(unsigned long)[fileData length] - 20,20}]);
     
     if(!fileSaved){
         //TODO: file didn't save, do something
