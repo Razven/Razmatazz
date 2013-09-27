@@ -69,7 +69,7 @@
         self.songTransferProgressPopup = [[RazInfoPopupView alloc] init];
         self.songTransferProgressView = [[UIProgressView alloc] initWithProgressViewStyle:UIProgressViewStyleBar];
         
-        UIImage *playIcon = [UIImage imageNamed:@"group.png"];
+        UIImage *playIcon = [UIImage imageNamed:@"play.png"];
         self.playMusicBarButton = [[UIBarButtonItem alloc] initWithImage:playIcon style:UIBarButtonItemStyleBordered target:self action:@selector(sendPlayMusicRequest)];
         [self.playMusicBarButton setEnabled:NO];
         

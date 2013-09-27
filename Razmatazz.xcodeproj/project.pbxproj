@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3847ADDB17F52457007E4F07 /* play.png in Resources */ = {isa = PBXBuildFile; fileRef = 3847ADD917F52457007E4F07 /* play.png */; };
+		3847ADDC17F52457007E4F07 /* play@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 3847ADDA17F52457007E4F07 /* play@2x.png */; };
 		387A458317D41DBA0092D48F /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 387A458117D41DB20092D48F /* MobileCoreServices.framework */; };
 		389AE7CB17CE576E00C9FFA7 /* RazConnectionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 389AE7CA17CE576E00C9FFA7 /* RazConnectionManager.m */; };
 		389AE7CE17CE65C700C9FFA7 /* QServer.m in Sources */ = {isa = PBXBuildFile; fileRef = 389AE7CD17CE65C700C9FFA7 /* QServer.m */; };
@@ -44,6 +46,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		3847ADD917F52457007E4F07 /* play.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = play.png; sourceTree = "<group>"; };
+		3847ADDA17F52457007E4F07 /* play@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "play@2x.png"; sourceTree = "<group>"; };
 		387A458117D41DB20092D48F /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		389AE7C917CE576E00C9FFA7 /* RazConnectionManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RazConnectionManager.h; sourceTree = "<group>"; };
 		389AE7CA17CE576E00C9FFA7 /* RazConnectionManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RazConnectionManager.m; sourceTree = "<group>"; };
@@ -148,6 +152,8 @@
 		38A253FA17CCFEFC00F76BD5 /* Images */ = {
 			isa = PBXGroup;
 			children = (
+				3847ADD917F52457007E4F07 /* play.png */,
+				3847ADDA17F52457007E4F07 /* play@2x.png */,
 				38A2540B17CD4CC200F76BD5 /* group.png */,
 				38A2540917CD4C4600F76BD5 /* group@2x.png */,
 			);
@@ -317,6 +323,8 @@
 				38A2540C17CD4CC200F76BD5 /* group.png in Resources */,
 				38AE427617D4580B00A60B00 /* RazmatazzIcon@2x.png in Resources */,
 				38AE427817D4581000A60B00 /* RazmatazzIcon.png in Resources */,
+				3847ADDB17F52457007E4F07 /* play.png in Resources */,
+				3847ADDC17F52457007E4F07 /* play@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
