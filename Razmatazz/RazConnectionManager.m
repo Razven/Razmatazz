@@ -27,7 +27,7 @@
     self = [super init];
     
     if(self) {
-        self.server = [[QServer alloc] initWithDomain:@"" type:kRazmatazzBonjourType name:nil preferredPort:44444];
+        self.server = [[QServer alloc] initWithDomain:kRazmatazzBonjourDomain type:kRazmatazzBonjourType name:nil preferredPort:0];
         [self.server setDelegate:self];
         self.connectionsArray = [NSMutableArray array];
     }
@@ -51,9 +51,12 @@
 }
 
 - (void) startServer {
-    [self.server start];
+    if(![self.server isStarted]){
+        [self.server start];
+    }
     if(self.server.registeredName != nil){
         // TODO: we've already registered the server, do stuff
+        NSLog(@"Server recovered from backgrounding");
     }
 }
 
@@ -67,7 +70,9 @@
 }
 
 - (void) stopServer {
-    [self.server stop];
+    if([self.server isStarted]) {
+        [self.server stop];
+    }
 }
 
 - (void) prepareForBackgrounding {

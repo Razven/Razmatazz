@@ -12,7 +12,7 @@
 
 @interface AppDelegate()
 
-@property (nonatomic, strong) RazConnectionManager *RazCM;
+@property (nonatomic, strong) RazConnectionManager *razConnectionManager;
 @property (nonatomic, assign) BOOL serverStarted;
 @property (nonatomic, strong) UINavigationController *navController;
 
@@ -39,7 +39,7 @@
         [[NSFileManager defaultManager] createDirectoryAtPath:songsDirectory withIntermediateDirectories:NO attributes:nil error:nil];
     }
     
-    self.RazCM = [[RazConnectionManager alloc] init];
+    self.razConnectionManager = [[RazConnectionManager alloc] init];
 
     HomeViewController *hvc = [[HomeViewController alloc] init];
     self.navController = [[UINavigationController alloc] initWithRootViewController:hvc];
@@ -58,12 +58,12 @@
 
 - (void)applicationDidEnterBackground:(UIApplication *)application
 {
-    [self.RazCM prepareForBackgrounding];
+    [self.razConnectionManager prepareForBackgrounding];
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
-    [self.RazCM startServer];
+    [self.razConnectionManager startServer];
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application
@@ -180,11 +180,11 @@
 #pragma mark - RazConnectionManager methods
 
 - (RazConnectionManager*)sharedRazConnectionManager {
-    if(self.RazCM){
-        return self.RazCM;
+    if(self.razConnectionManager){
+        return self.razConnectionManager;
     } else {
-        self.RazCM = [[RazConnectionManager alloc] init];
-        return self.RazCM;
+        self.razConnectionManager = [[RazConnectionManager alloc] init];
+        return self.razConnectionManager;
     }
 }
 

@@ -12,6 +12,7 @@
 #define APPLICATION_SONGS_DIRECTORY [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Songs"]
 
 #define kRazmatazzBonjourType                   @"_razmatazz._tcp."
+#define kRazmatazzBonjourDomain                 @"local."
 
 #define kServerStartedNotification              @"QServerStartedNotification"
 #define kServerStoppedNotification              @"QServerStoppedNotification"

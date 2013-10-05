@@ -127,11 +127,12 @@
     [super didReceiveMemoryWarning];
 }
 
-- (void)start {    
+- (void)start {
     self.browser = [[NSNetServiceBrowser alloc] init];
     [self.browser scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
     [self.browser setDelegate:self];
-    [self.browser searchForServicesOfType:self.type inDomain:@""];
+    NSString * browserDomain = [(NSString*)kRazmatazzBonjourDomain substringToIndex:[kRazmatazzBonjourDomain length] - 1];
+    [self.browser searchForServicesOfType:self.type inDomain:browserDomain];
 }
 
 - (void)stop {

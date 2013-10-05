@@ -40,6 +40,8 @@
         self.joinPartyAlertView = [[UIAlertView alloc] initWithTitle:@"Nickname" message:@"Please enter your nickname" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"OK", nil];
         [self.joinPartyAlertView setAlertViewStyle:UIAlertViewStylePlainTextInput];
         [self.joinPartyAlertView textFieldAtIndex:0].delegate = self;
+        
+        self.razConnectionManager = [(AppDelegate*)[UIApplication sharedApplication].delegate sharedRazConnectionManager];
     }
     
     return self;
@@ -90,8 +92,6 @@
     [self.view addSubview:self.hostPartyButton];
     
     [self.navigationController.navigationBar setTintColor:[UIColor lightGrayColor]];
-    
-    self.razConnectionManager = [(AppDelegate*)[UIApplication sharedApplication].delegate sharedRazConnectionManager];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
